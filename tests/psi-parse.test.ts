@@ -215,6 +215,14 @@ describe("classifyPsiError", () => {
     expect(error.retryable).toBe(false);
   });
 
+  it("recognizes the real 400 Google sends for a bad key", () => {
+    const error = classifyPsiError(
+      400,
+      '{"error":{"code":400,"message":"API key not valid. Please pass a valid API key.","details":[{"reason":"API_KEY_INVALID"}]}}',
+    );
+    expect(error.code).toBe("not_configured");
+  });
+
   it("never exposes the upstream body", () => {
     expect(classifyPsiError(500, "secret-key-abc").message).not.toContain("secret-key-abc");
   });

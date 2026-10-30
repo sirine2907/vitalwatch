@@ -2,6 +2,7 @@ import { AppError } from "@/lib/errors";
 
 const LIGHTHOUSE_ERROR = /lighthouse returned error|FAILED_DOCUMENT_REQUEST|ERRORED_DOCUMENT_REQUEST|DNS_FAILURE|NO_FCP|DOCUMENT_REQUEST/i;
 const DAILY_QUOTA = /per day|1\/d\/|PerDay/i;
+const API_KEY_REJECTED = /API_KEY_INVALID|API key not valid/i;
 
 /**
  * Turns a failed PSI response into a user-safe error and decides whether
@@ -9,11 +10,20 @@ const DAILY_QUOTA = /per day|1\/d\/|PerDay/i;
  * recover within a retry window.
  */
 export function classifyPsiError(status: number, body: string): AppError {
+  // Google reports a bad key as a 400, which would otherwise look like a bad URL.
+  if (status === 401 || status === 403 || API_KEY_REJECTED.test(body)) {
+    return new AppError(
+      "not_configured",
+      "The PageSpeed Insights API key was rejected. Check the server configuration.",
+      { status: 503 },
+    );
+  }
+
   if (status === 429) {
     if (DAILY_QUOTA.test(body)) {
       return new AppError(
         "psi_quota",
-        "The daily PageSpeed Insights quota has run out. Add an API key or try again tomorrow.",
+        "The daily PageSpeed Insights quota has run out. Please try again tomorrow.",
         { status: 503 },
       );
     }
@@ -37,14 +47,6 @@ export function classifyPsiError(status: number, body: string): AppError {
       "site_unreachable",
       "PageSpeed Insights couldn't test this URL. Check that it's correct and public.",
       { status: 422 },
-    );
-  }
-
-  if (status === 401 || status === 403) {
-    return new AppError(
-      "not_configured",
-      "The PageSpeed Insights API key was rejected. Check the server configuration.",
-      { status: 503 },
     );
   }
 
