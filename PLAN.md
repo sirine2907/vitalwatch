@@ -2,7 +2,7 @@
 
 VitalWatch tests websites on a schedule, keeps their performance history, alerts on real regressions, and uses AI to explain fixes for each site's tech stack.
 
-**Status:** waiting for approval. No application code has been written.
+**Status:** plan approved. Phase 1 is built; Phase 2 waits for Phase 1 to be tested.
 
 Versions and limits below were checked on 2026-10-30.
 
@@ -273,7 +273,8 @@ Each is documented in `.env.example`. `src/lib/env.ts` validates them at startup
 
 | Variable | Phase | Purpose |
 |---|---|---|
-| `PAGESPEED_API_KEY` | 1 | Google Cloud API key |
+| `PAGESPEED_API_KEY` | 1 | Google Cloud API key. Required: Google's keyless quota is currently 0 |
+| `PAGESPEED_API_URL` | 1 | Optional; points at a mock PSI server for local testing |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | 1 | Cache and rate limit |
 | `DATABASE_URL` | 2 | Neon or Supabase pooled URL |
 | `AUTH_SECRET`, `AUTH_URL` | 2 | Auth.js |
