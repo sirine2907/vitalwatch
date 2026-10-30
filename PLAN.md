@@ -86,7 +86,7 @@ services/ (use cases)                            orchestration; no SQL and no JS
    +----+-----------------+
    |                      |
 domain/                 data/ and integrations/
-pure logic, no I/O      repositories, PSI, Redis, QStash, Resend, Anthropic
+pure logic, no I/O      repositories, PSI, Redis, QStash, Resend, LLM
 most tests live here    all network and database access
 ```
 
@@ -207,7 +207,7 @@ shared_reports
 
 **Choices worth reviewing**
 - **Metrics are real columns** with the raw JSON beside them, so charts never have to parse JSON.
-- **`raw` drops** screenshots, `i18n`, stack-pack icons and network request lists. Screenshots alone are most of a PSI response. All runs are kept by default (see Q5).
+- **`raw` drops** screenshots, `i18n`, stack-pack icons and network request lists. Screenshots alone are most of a PSI response. All runs are kept by default (see section 9).
 - **The partial unique index on `alerts`** makes "one open alert per problem" a database rule, which stops repeat emails.
 - **Reports are snapshots,** so a shared link never reveals newer data than you chose to share.
 
