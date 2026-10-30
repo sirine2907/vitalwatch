@@ -18,7 +18,7 @@ describe("withRetry", () => {
   });
 
   it("backs off exponentially, then succeeds", async () => {
-    const sleep = vi.fn(async (_ms: number) => {});
+    const sleep = vi.fn<(ms: number) => Promise<void>>(async () => {});
     const operation = vi
       .fn<() => Promise<string>>()
       .mockRejectedValueOnce(new Error("1"))
@@ -50,7 +50,7 @@ describe("withRetry", () => {
   });
 
   it("applies jitter of up to half the delay", async () => {
-    const sleep = vi.fn(async (_ms: number) => {});
+    const sleep = vi.fn<(ms: number) => Promise<void>>(async () => {});
     const operation = vi
       .fn<() => Promise<string>>()
       .mockRejectedValueOnce(new Error("1"))
