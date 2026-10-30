@@ -19,7 +19,8 @@ Versions and limits below were checked on 2026-10-30.
 | Validation | Zod at every boundary: forms, routes, env vars, PSI responses and LLM output | PSI responses vary by site, and a bad one should fail clearly instead of saving nulls. |
 | Charts | Recharts through shadcn's chart component | I'll install the Recharts version that component supports at setup time, which may not be the latest. |
 | PDF | `@react-pdf/renderer` | It runs without headless Chromium, which is heavy and fragile on serverless. |
-| AI | `@anthropic-ai/sdk`, default model `claude-opus-5-5`, set by `ANTHROPIC_MODEL` | Structured JSON output is validated with Zod. See Q2 for cost. |
+| Budget | **$0**: portfolio project on free tiers only | Every service must work without a card. Free-tier limits are shown in the demo rather than worked around. |
+| AI | **Gemini API free tier** by default, behind an `LlmProvider` interface, with Anthropic as an optional adapter | The Anthropic API has no free tier. Keeping the interface means Claude works if a key is ever added, with no other code changes. Output is validated with Zod either way. |
 | Tests | Vitest for logic, PGlite for repositories | PGlite is Postgres in-process, so tests need neither Docker nor a cloud database. |
 | Package manager | npm | It is already set up on this machine, with its cache on D:. |
 
@@ -133,7 +134,8 @@ src/
     repositories/
   integrations/
     psi.client.ts  redis.ts  rate-limit.ts  qstash.ts
-    resend.ts  anthropic.ts  site-fetcher.ts
+    resend.ts  site-fetcher.ts
+    llm/provider.ts  llm/gemini.ts  llm/anthropic.ts
   lib/
     env.ts  errors.ts  retry.ts
 tests/                              fixtures of real PSI responses
@@ -222,13 +224,13 @@ shared_reports
 - Tests: URL validation, PSI parsing and opportunity ranking, using saved real responses.
 
 ### Phase 2: Accounts and history
-- Magic link and GitHub sign-in, with project and URL management.
+- GitHub sign-in for everyone, magic link for the owner's address only (see section 9), with project and URL management.
 - Signed-in tests are stored as `test_runs`.
 - Trend charts per URL and metric for 7/30/90 days, overlaying mobile and desktop. A failed run shows as a gap rather than zero.
 
 ### Phase 3: Monitoring and alerts
 - The dispatcher and worker from 1.1, with schedule settings per project.
-- Regression detection (below), email alerts, in-app feed, and per-project thresholds.
+- Regression detection (below), in-app feed for all users, email alerts for the owner's address, and per-project thresholds. A failed email never blocks the run or the in-app alert.
 
 **How regression detection works.** All of this is pure functions in `domain/regression/`, tested heavily.
 
@@ -245,10 +247,11 @@ So the vital check uses field values when available. Otherwise it falls back to 
 
 ### Phase 4: AI fix suggestions
 - **Stack detection** merges three signals, each with evidence: response headers, HTML markers (such as `__NEXT_DATA__`, `wp-content`, `cdn.shopify.com`) and Lighthouse `stackPacks`.
-- **Generation is on demand** through a button rather than on every scheduled run, so monitoring doesn't spend AI money.
+- **Generation is on demand** through a button rather than on every scheduled run, so monitoring doesn't use up the free AI quota.
 - **The LLM gets only** failing audit IDs, titles, savings and a few trimmed items, plus the stack names and strategy. It never gets raw HTML, headers, cookies or the full JSON.
 - **The output** is validated against a schema: priority, title, why, stack-specific steps, code example, estimated impact and difficulty. Impact is labelled as an estimate.
-- **Controls:** cached per run and prompt version, a daily cap per user, and `refusal` and `max_tokens` stop reasons handled. Server-side refusal fallback is on by default. I'll check SDK details against current docs when I build this.
+- **Controls:** cached per run and prompt version, a daily cap per user, and a clear "free AI quota used up, try later" message when Gemini returns a rate-limit error. I'll check SDK details and structured-output support against current docs when I build this.
+- **Free-tier privacy:** Google's pricing page says free-tier content is used to improve its products. That fits this feature because it sends only public audit data about public sites. Nothing about the user is sent, and the UI will state this.
 
 ### Phase 5: Comparison and reports
 - Up to 3 competitor URLs per project, compared side by side. Competitors are tested **on demand** and never alert, which saves quota.
@@ -275,10 +278,11 @@ Each is documented in `.env.example`. `src/lib/env.ts` validates them at startup
 | `DATABASE_URL` | 2 | Neon or Supabase pooled URL |
 | `AUTH_SECRET`, `AUTH_URL` | 2 | Auth.js |
 | `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET` | 2 | GitHub OAuth |
-| `RESEND_API_KEY`, `EMAIL_FROM` | 2 | Magic links and alerts |
+| `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_OWNER_ADDRESS` | 2 | Magic links and alerts; without a domain, email goes only to the owner address |
 | `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY` | 3 | Scheduling |
 | `APP_URL` | 3 | Public URL that QStash calls |
-| `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `AI_DAILY_LIMIT_PER_USER` | 4 | AI suggestions |
+| `GEMINI_API_KEY`, `GEMINI_MODEL`, `AI_DAILY_LIMIT_PER_USER` | 4 | AI suggestions |
+| `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | 4 | Optional; if set, Claude is used instead of Gemini |
 
 ---
 
@@ -308,34 +312,19 @@ Each is documented in `.env.example`. `src/lib/env.ts` validates them at startup
 
 ---
 
-## 9. Questions for you
+## 9. Free-tier constraints
 
-**Q1. Do you own a domain for sending email? (Needed by Phase 2)**
-From what I recall, Resend only sends to your own account's address until a domain is verified, and I'll confirm that before Phase 2. Without a domain, magic links would only reach you.
-*Default if you have no domain:* build it anyway, and use GitHub sign-in for everyone else during development.
+This is a non-commercial portfolio project with no budget, which also fits Vercel Hobby's non-commercial rule.
 
-**Q2. Is paying for the Anthropic API OK, and which model? (Needed by Phase 4)**
-This is the one service with no free tier in the stack. My rough estimate for one suggestion set is 5K tokens in and 4K out:
+| Constraint | What the app does |
+|---|---|
+| **Email:** Resend's test sender only reaches your own account address, and a verified domain costs money | GitHub sign-in is the main login. Magic link and alert emails work for your address, which is enough to demo them. Other users get in-app alerts, and the UI explains why. If you ever get a domain, setting `EMAIL_FROM` and removing `EMAIL_OWNER_ADDRESS` opens email to everyone, with no code changes. |
+| **AI:** Gemini's free limits aren't published on its docs pages and are shown only in AI Studio | Default cap of 10 generations per user per day, results cached per run, generated only on click. I'll adjust the cap once your AI Studio limits are visible. |
+| **Scheduling:** QStash's free limit is 1,000 messages a day | About 18 hourly URLs in total. The app caps each user's monitored URLs to protect the shared quota. |
 
-| Model | Price per million tokens, in / out | Approx. per generation |
-|---|---|---|
-| `claude-opus-5-5` (default) | $4 / $20 | $0.10 |
-| `claude-sonnet-5-5` | $2 / $10 | $0.05 |
-| `claude-haiku-5-5` | $0.10 / $0.50 | $0.003 |
-
-Switching only takes changing `ANTHROPIC_MODEL`.
-*Default:* Opus, capped at 10 generations per user per day. Results are cached per run, and nothing is generated unless a user clicks.
-
-**Q3. Is this a commercial product or a portfolio project?**
-As far as I recall, Vercel Hobby is for non-commercial use only, so a commercial launch would need Pro.
-*Default:* portfolio or non-commercial, on free tiers.
-
-**Q4. Whose brand goes on the PDF?**
-*Default:* VitalWatch branding plus the project's own name, with an optional logo and accent color per project (the columns are already in the schema).
-
-**Q5. How long should raw JSON be kept?**
-You asked for full history, but hourly raw JSON adds up against free database limits.
-*Default:* keep everything, and measure the real per-run size in Phase 2. If it's a problem, I'd prune only `raw` and keep the metrics forever, after asking you.
+**Remaining defaults**
+- **PDF branding:** VitalWatch branding plus the project's own name, with an optional logo and accent color per project.
+- **Raw JSON:** keep everything and measure the real per-run size in Phase 2. If it threatens the free database limit, I'd prune only `raw` and keep the metrics forever, after asking you.
 
 ### Accounts you'll need
 
@@ -347,7 +336,7 @@ You asked for full history, but hourly raw JSON adds up against free database li
 | 2 | GitHub OAuth app | Free |
 | 2 | Resend | Free: 3,000 emails a month, 100 a day |
 | 3 | QStash | Free tier, limits in 1.1 |
-| 3 | A deployed public URL, such as Vercel | Free, subject to Q3 |
-| 4 | Anthropic API | **Paid** |
+| 3 | A deployed public URL on Vercel | Free (Hobby) |
+| 4 | Google AI Studio (Gemini API key) | Free tier |
 
 **Phase 1 can't be fully tested without the Google and Upstash keys.** I won't add an in-memory fallback, since you ruled that out. If the Upstash variables are missing in development, the app will skip caching and rate limiting and log a clear warning. In production it refuses to start.
