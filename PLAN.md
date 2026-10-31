@@ -2,7 +2,7 @@
 
 VitalWatch tests websites on a schedule, keeps their performance history, alerts on real regressions, and uses AI to explain fixes for each site's tech stack.
 
-**Status:** plan approved. Phase 1 is built; Phase 2 waits for Phase 1 to be tested.
+**Status:** plan approved. Phases 1 and 2 are built; Phase 3 waits for Phase 2 to be tested.
 
 Versions and limits below were checked on 2026-10-30.
 
@@ -146,6 +146,8 @@ tests/                              fixtures of real PSI responses
 ## 4. Database schema
 
 Auth.js's standard tables (`users`, `accounts`, `sessions`, `verification_tokens`) are also included. All IDs are UUIDs and all timestamps are `timestamptz`.
+
+This is the target schema. Each phase's migration adds only the columns and tables that phase uses. One change from this design: `project_urls` has a single `url` column holding the normalized form, since nothing needs the text as typed.
 
 ```
 projects
