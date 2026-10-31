@@ -1,7 +1,5 @@
-import { Ratelimit } from "@upstash/ratelimit";
+import { Ratelimit, type Duration } from "@upstash/ratelimit";
 import type { Redis } from "@upstash/redis";
-
-const REQUESTS_PER_MINUTE = 10;
 
 export interface RateLimitDecision {
   allowed: boolean;
@@ -12,11 +10,23 @@ export interface RateLimitDecision {
 
 export type RateLimiter = (identifier: string) => Promise<RateLimitDecision>;
 
-export function createRedisRateLimiter(redis: Redis): RateLimiter {
+export interface RateLimitRule {
+  prefix: string;
+  requests: number;
+  window: Duration;
+}
+
+export const ANALYZE_RATE_LIMIT: RateLimitRule = {
+  prefix: "ratelimit:analyze",
+  requests: 10,
+  window: "1 m",
+};
+
+export function createRedisRateLimiter(redis: Redis, rule: RateLimitRule): RateLimiter {
   const limiter = new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(REQUESTS_PER_MINUTE, "1 m"),
-    prefix: "ratelimit:analyze",
+    limiter: Ratelimit.slidingWindow(rule.requests, rule.window),
+    prefix: rule.prefix,
   });
 
   return async (identifier) => {
@@ -27,7 +37,7 @@ export function createRedisRateLimiter(redis: Redis): RateLimiter {
 
 export const noRateLimit: RateLimiter = async () => ({
   allowed: true,
-  limit: REQUESTS_PER_MINUTE,
-  remaining: REQUESTS_PER_MINUTE,
+  limit: 0,
+  remaining: 0,
   resetAt: 0,
 });

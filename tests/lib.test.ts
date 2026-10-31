@@ -96,6 +96,10 @@ describe("env", () => {
     expect(missingProductionEnv(readEnv({ PAGESPEED_API_KEY: "k" }))).toEqual([
       "UPSTASH_REDIS_REST_URL",
       "UPSTASH_REDIS_REST_TOKEN",
+      "DATABASE_URL",
+      "AUTH_SECRET",
+      "AUTH_GITHUB_ID",
+      "AUTH_GITHUB_SECRET",
     ]);
   });
 

@@ -1,6 +1,6 @@
 import { createRedisCache, noCache } from "@/integrations/analysis-cache";
 import { fetchPsi } from "@/integrations/psi.client";
-import { createRedisRateLimiter, noRateLimit } from "@/integrations/rate-limit";
+import { ANALYZE_RATE_LIMIT, createRedisRateLimiter, noRateLimit } from "@/integrations/rate-limit";
 import { getRedis } from "@/integrations/redis";
 import { readEnv } from "@/lib/env";
 import { AppError } from "@/lib/errors";
@@ -25,6 +25,6 @@ export function buildAnalysisService() {
     fetchPsi: (url, strategy) =>
       fetchPsi(url, strategy, { apiKey, endpoint: env.PAGESPEED_API_URL }),
     cache: redis ? createRedisCache(redis) : noCache,
-    rateLimit: redis ? createRedisRateLimiter(redis) : noRateLimit,
+    rateLimit: redis ? createRedisRateLimiter(redis, ANALYZE_RATE_LIMIT) : noRateLimit,
   });
 }

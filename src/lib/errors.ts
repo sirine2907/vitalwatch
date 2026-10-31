@@ -1,6 +1,7 @@
 export type AppErrorCode =
   | "invalid_url"
   | "invalid_request"
+  | "not_found"
   | "rate_limited"
   | "site_unreachable"
   | "psi_quota"

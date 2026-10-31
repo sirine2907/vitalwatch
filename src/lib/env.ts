@@ -5,6 +5,13 @@ const envSchema = z.object({
   PAGESPEED_API_URL: z.url().optional(),
   UPSTASH_REDIS_REST_URL: z.url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
+  DATABASE_URL: z.string().min(1).optional(),
+  AUTH_SECRET: z.string().min(1).optional(),
+  AUTH_GITHUB_ID: z.string().min(1).optional(),
+  AUTH_GITHUB_SECRET: z.string().min(1).optional(),
+  RESEND_API_KEY: z.string().min(1).optional(),
+  EMAIL_FROM: z.string().min(1).optional(),
+  EMAIL_OWNER_ADDRESS: z.email().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -13,6 +20,10 @@ const REQUIRED_IN_PRODUCTION = [
   "PAGESPEED_API_KEY",
   "UPSTASH_REDIS_REST_URL",
   "UPSTASH_REDIS_REST_TOKEN",
+  "DATABASE_URL",
+  "AUTH_SECRET",
+  "AUTH_GITHUB_ID",
+  "AUTH_GITHUB_SECRET",
 ] as const;
 
 export function readEnv(source: Record<string, string | undefined> = process.env): Env {
