@@ -30,8 +30,13 @@ const eslintConfig = [
   ),
   restrict(
     ["src/services/**"],
-    ["@/app/**", "@/components/**"],
-    "Services can't depend on the UI.",
+    ["@/app/**", "@/components/**", "drizzle-orm", "drizzle-orm/*", "postgres"],
+    "Services use repositories and can't depend on the UI.",
+  ),
+  restrict(
+    ["src/app/**"],
+    ["@/data/**", "drizzle-orm", "drizzle-orm/*", "postgres"],
+    "Pages and routes go through services.",
   ),
   {
     ignores: [

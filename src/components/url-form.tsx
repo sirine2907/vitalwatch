@@ -9,11 +9,13 @@ import { validateUrl } from "@/domain/url/validate";
 
 export function UrlForm({ defaultValue = "" }: { defaultValue?: string }) {
   const router = useRouter();
-  const [value, setValue] = useState(defaultValue);
   const [error, setError] = useState<string | null>(null);
 
-  function submit(event: FormEvent) {
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    // Read from the form, not React state, so text typed before the page's
+    // JavaScript loaded still counts.
+    const value = String(new FormData(event.currentTarget).get("url") ?? "");
     const validation = validateUrl(value);
     if (!validation.ok) {
       setError(validation.error);
@@ -24,15 +26,16 @@ export function UrlForm({ defaultValue = "" }: { defaultValue?: string }) {
   }
 
   return (
-    <form onSubmit={submit} noValidate className="w-full">
+    // action and method make this a normal form until JavaScript has loaded.
+    <form action="/analyze" method="get" onSubmit={submit} noValidate className="w-full">
       <Label htmlFor="url" className="mb-2 block">
         Page URL
       </Label>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Input
           id="url"
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
+          name="url"
+          defaultValue={defaultValue}
           placeholder="example.com"
           inputMode="url"
           autoComplete="url"
