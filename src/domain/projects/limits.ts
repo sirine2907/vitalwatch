@@ -1,6 +1,8 @@
 // Every user shares one free PageSpeed and database quota, so accounts are capped.
 export const MAX_PROJECTS_PER_USER = 5;
 export const MAX_URLS_PER_PROJECT = 10;
+export const MAX_COMPETITORS_PER_PROJECT = 3;
+export const MAX_SCORE_DROP_THRESHOLD = 50;
 export const MAX_PROJECT_NAME_LENGTH = 80;
 export const MAX_URL_LABEL_LENGTH = 80;
 export const MANUAL_RUNS_PER_HOUR = 30;

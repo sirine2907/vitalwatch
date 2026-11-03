@@ -10,11 +10,14 @@ export interface ProjectSummary {
   createdAt: Date;
 }
 
+export type UrlRole = "monitored" | "competitor";
+
 export interface MonitoredUrl {
   id: string;
   projectId: string;
   url: string;
   label: string | null;
+  role: UrlRole;
 }
 
 export interface RunMetrics {

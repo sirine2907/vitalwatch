@@ -100,6 +100,10 @@ describe("env", () => {
       "AUTH_SECRET",
       "AUTH_GITHUB_ID",
       "AUTH_GITHUB_SECRET",
+      "APP_URL",
+      "QSTASH_TOKEN",
+      "QSTASH_CURRENT_SIGNING_KEY",
+      "QSTASH_NEXT_SIGNING_KEY",
     ]);
   });
 

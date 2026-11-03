@@ -19,7 +19,7 @@ export interface RunDependencies {
   now?: () => number;
 }
 
-function toCompletedRun(result: AnalysisResult, raw: unknown): runs.CompletedRun {
+export function toCompletedRun(result: AnalysisResult, raw: unknown): runs.CompletedRun {
   return {
     performanceScore: result.score,
     labLcpMs: result.lab.lcp,

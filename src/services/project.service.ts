@@ -1,12 +1,18 @@
+import type { Db } from "@/data/db";
+import * as monitoring from "@/data/repositories/monitoring.repository";
 import * as repo from "@/data/repositories/projects.repository";
 import { getLatestScores } from "@/data/repositories/runs.repository";
-import type { Db } from "@/data/db";
+import { checkScheduleQuota } from "@/domain/monitoring/quota";
+import { firstRunAt, SCHEDULES, type Schedule } from "@/domain/monitoring/schedule";
 import {
+  MAX_COMPETITORS_PER_PROJECT,
   MAX_PROJECT_NAME_LENGTH,
   MAX_PROJECTS_PER_USER,
+  MAX_SCORE_DROP_THRESHOLD,
   MAX_URL_LABEL_LENGTH,
   MAX_URLS_PER_PROJECT,
 } from "@/domain/projects/limits";
+import type { UrlRole } from "@/domain/projects/types";
 import { validateUrl } from "@/domain/url/validate";
 import { AppError } from "@/lib/errors";
 
@@ -27,11 +33,31 @@ function cleanName(input: string): string {
   return name;
 }
 
-export function createProjectService(db: Db) {
+export interface MonitoringInput {
+  schedule: string;
+  scoreDropThreshold: string;
+  emailAlerts: boolean;
+}
+
+export function createProjectService(db: Db, now: () => Date = () => new Date()) {
   async function requireProject(userId: string, projectId: string) {
     const project = isUuid(projectId) ? await repo.getProject(db, userId, projectId) : null;
     if (!project) throw notFound("That project");
     return project;
+  }
+
+  /** Rejects a change that would push the user's scheduled tests over their share. */
+  async function assertQuota(userId: string, projectId: string, change: { schedule?: Schedule; addUrls?: number }) {
+    const loads = await monitoring.listScheduleLoads(db, userId);
+    const project = loads.get(projectId);
+    if (project) {
+      loads.set(projectId, {
+        schedule: change.schedule ?? project.schedule,
+        urlCount: project.urlCount + (change.addUrls ?? 0),
+      });
+    }
+    const problem = checkScheduleQuota([...loads.values()]);
+    if (problem) throw invalid(problem);
   }
 
   return {
@@ -58,8 +84,14 @@ export function createProjectService(db: Db) {
       await repo.deleteProject(db, userId, projectId);
     },
 
-    async addUrl(userId: string, projectId: string, input: string, labelInput = "") {
-      await requireProject(userId, projectId);
+    async addUrl(
+      userId: string,
+      projectId: string,
+      input: string,
+      labelInput = "",
+      role: UrlRole = "monitored",
+    ) {
+      const project = await requireProject(userId, projectId);
 
       const validation = validateUrl(input);
       if (!validation.ok) throw invalid(validation.error);
@@ -68,11 +100,20 @@ export function createProjectService(db: Db) {
       if (label.length > MAX_URL_LABEL_LENGTH) {
         throw invalid(`Labels can be at most ${MAX_URL_LABEL_LENGTH} characters.`);
       }
-      if ((await repo.countUrls(db, projectId)) >= MAX_URLS_PER_PROJECT) {
-        throw invalid(`A project can have up to ${MAX_URLS_PER_PROJECT} URLs.`);
+
+      const limit = role === "monitored" ? MAX_URLS_PER_PROJECT : MAX_COMPETITORS_PER_PROJECT;
+      if ((await repo.countUrls(db, projectId, role)) >= limit) {
+        throw invalid(
+          role === "monitored"
+            ? `A project can have up to ${limit} URLs.`
+            : `A project can have up to ${limit} competitors.`,
+        );
+      }
+      if (role === "monitored" && project.schedule !== "off") {
+        await assertQuota(userId, projectId, { addUrls: 1 });
       }
 
-      const created = await repo.insertUrl(db, projectId, validation.url, label || null);
+      const created = await repo.insertUrl(db, projectId, validation.url, label || null, role);
       if (!created) throw invalid("This project already has that URL.");
       return created;
     },
@@ -88,18 +129,41 @@ export function createProjectService(db: Db) {
       return url;
     },
 
+    async updateMonitoring(userId: string, projectId: string, input: MonitoringInput) {
+      const project = await requireProject(userId, projectId);
+
+      const schedule = SCHEDULES.find((option) => option === input.schedule);
+      if (!schedule) throw invalid("Choose a schedule.");
+
+      const threshold = Number(input.scoreDropThreshold);
+      if (!Number.isInteger(threshold) || threshold < 1 || threshold > MAX_SCORE_DROP_THRESHOLD) {
+        throw invalid(`The score drop must be a whole number from 1 to ${MAX_SCORE_DROP_THRESHOLD}.`);
+      }
+      if (schedule !== "off") await assertQuota(userId, projectId, { schedule });
+
+      await monitoring.updateMonitoringSettings(db, userId, projectId, {
+        schedule,
+        // Keep the current slot unless the schedule itself changed.
+        nextRunAt: schedule === project.schedule ? project.nextRunAt : firstRunAt(schedule, now()),
+        scoreDropThreshold: threshold,
+        emailAlerts: input.emailAlerts,
+      });
+    },
+
     /** A project's URLs, each with its latest mobile and desktop score. */
     async getOverview(userId: string, projectId: string) {
       const project = await requireProject(userId, projectId);
       const urls = await repo.listUrls(db, userId, projectId);
       const scores = await getLatestScores(db, userId, urls.map((url) => url.id));
+      const withScores = urls.map((url) => ({
+        ...url,
+        mobile: scores.find((s) => s.urlId === url.id && s.strategy === "mobile")?.score ?? null,
+        desktop: scores.find((s) => s.urlId === url.id && s.strategy === "desktop")?.score ?? null,
+      }));
       return {
         project,
-        urls: urls.map((url) => ({
-          ...url,
-          mobile: scores.find((s) => s.urlId === url.id && s.strategy === "mobile")?.score ?? null,
-          desktop: scores.find((s) => s.urlId === url.id && s.strategy === "desktop")?.score ?? null,
-        })),
+        urls: withScores.filter((url) => url.role === "monitored"),
+        competitors: withScores.filter((url) => url.role === "competitor"),
       };
     },
   };

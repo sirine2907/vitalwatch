@@ -12,11 +12,16 @@
     "fixtures:capture": "node --env-file=.env.local scripts/capture-psi-fixture.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "jobs:schedule": "node --env-file=.env.local scripts/schedule-dispatcher.mjs",
+    "jobs:dispatch": "node scripts/trigger-dispatch.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.4.0",
     "@auth/drizzle-adapter": "^1.11.3",
     "@base-ui/react": "^1.9.0",
+    "@react-pdf/renderer": "^4.9.0",
+    "@upstash/qstash": "^2.12.1",
     "@upstash/ratelimit": "^2.2.0",
     "@upstash/redis": "^1.40.0",
     "class-variance-authority": "^0.7.1",

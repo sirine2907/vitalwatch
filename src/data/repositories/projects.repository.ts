@@ -1,5 +1,5 @@
 import { and, asc, count, desc, eq } from "drizzle-orm";
-import type { MonitoredUrl, ProjectSummary } from "@/domain/projects/types";
+import type { MonitoredUrl, ProjectSummary, UrlRole } from "@/domain/projects/types";
 import type { Db } from "../db";
 import { projects, projectUrls } from "../schema";
 
@@ -8,6 +8,7 @@ const urlColumns = {
   projectId: projectUrls.projectId,
   url: projectUrls.url,
   label: projectUrls.label,
+  role: projectUrls.role,
 };
 
 export async function createProject(db: Db, userId: string, name: string) {
@@ -32,7 +33,10 @@ export async function listProjects(db: Db, userId: string): Promise<ProjectSumma
       urlCount: count(projectUrls.id),
     })
     .from(projects)
-    .leftJoin(projectUrls, eq(projectUrls.projectId, projects.id))
+    .leftJoin(
+      projectUrls,
+      and(eq(projectUrls.projectId, projects.id), eq(projectUrls.role, "monitored")),
+    )
     .where(eq(projects.userId, userId))
     .groupBy(projects.id)
     .orderBy(desc(projects.createdAt));
@@ -63,11 +67,11 @@ export async function deleteProject(db: Db, userId: string, projectId: string) {
   return deleted.length > 0;
 }
 
-export async function countUrls(db: Db, projectId: string): Promise<number> {
+export async function countUrls(db: Db, projectId: string, role: UrlRole): Promise<number> {
   const [row] = await db
     .select({ value: count() })
     .from(projectUrls)
-    .where(eq(projectUrls.projectId, projectId));
+    .where(and(eq(projectUrls.projectId, projectId), eq(projectUrls.role, role)));
   return row.value;
 }
 
@@ -77,10 +81,11 @@ export async function insertUrl(
   projectId: string,
   url: string,
   label: string | null,
+  role: UrlRole,
 ): Promise<MonitoredUrl | null> {
   const [created] = await db
     .insert(projectUrls)
-    .values({ projectId, url, label })
+    .values({ projectId, url, label, role })
     .onConflictDoNothing()
     .returning(urlColumns);
   return created ?? null;

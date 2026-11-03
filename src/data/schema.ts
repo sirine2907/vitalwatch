@@ -1,4 +1,6 @@
+import { sql } from "drizzle-orm";
 import {
+  boolean,
   index,
   integer,
   jsonb,
@@ -9,6 +11,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -68,6 +71,12 @@ export const strategyEnum = pgEnum("strategy", ["mobile", "desktop"]);
 export const runStatusEnum = pgEnum("run_status", ["pending", "success", "failed"]);
 export const runTriggerEnum = pgEnum("run_trigger", ["manual", "scheduled", "retest"]);
 export const fieldScopeEnum = pgEnum("field_scope", ["url", "origin", "none"]);
+export const scheduleEnum = pgEnum("schedule", ["off", "hourly", "daily", "weekly"]);
+export const alertTypeEnum = pgEnum("alert_type", ["score_drop", "vital_poor"]);
+export const alertMetricEnum = pgEnum("alert_metric", ["score", "lcp", "inp", "cls"]);
+export const alertSourceEnum = pgEnum("alert_source", ["lab", "field"]);
+export const urlRoleEnum = pgEnum("url_role", ["monitored", "competitor"]);
+export const alertStatusEnum = pgEnum("alert_status", ["open", "resolved"]);
 
 export const projects = pgTable(
   "projects",
@@ -77,9 +86,17 @@ export const projects = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    schedule: scheduleEnum("schedule").notNull().default("off"),
+    nextRunAt: timestamp("next_run_at", { withTimezone: true }),
+    scoreDropThreshold: integer("score_drop_threshold").notNull().default(10),
+    baselineSize: integer("baseline_size").notNull().default(10),
+    emailAlerts: boolean("email_alerts").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("projects_user_idx").on(table.userId)],
+  (table) => [
+    index("projects_user_idx").on(table.userId),
+    index("projects_due_idx").on(table.nextRunAt).where(sql`${table.schedule} <> 'off'`),
+  ],
 );
 
 export const projectUrls = pgTable(
@@ -92,6 +109,8 @@ export const projectUrls = pgTable(
     // Always the normalized form from validateUrl, so duplicates can't sneak in.
     url: text("url").notNull(),
     label: text("label"),
+    // Competitors are only tested on demand and never raise alerts.
+    role: urlRoleEnum("role").notNull().default("monitored"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [unique("project_urls_project_url_unique").on(table.projectId, table.url)],
@@ -107,6 +126,8 @@ export const testRuns = pgTable(
     strategy: strategyEnum("strategy").notNull(),
     status: runStatusEnum("status").notNull().default("pending"),
     trigger: runTriggerEnum("trigger").notNull().default("manual"),
+    // The scheduled slot a job run belongs to, so a redelivered job can't run twice.
+    slot: timestamp("slot", { withTimezone: true }),
     performanceScore: integer("performance_score"),
     labLcpMs: real("lab_lcp_ms"),
     labFcpMs: real("lab_fcp_ms"),
@@ -125,5 +146,41 @@ export const testRuns = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     completedAt: timestamp("completed_at", { withTimezone: true }),
   },
-  (table) => [index("test_runs_trend_idx").on(table.urlId, table.strategy, table.createdAt.desc())],
+  (table) => [
+    index("test_runs_trend_idx").on(table.urlId, table.strategy, table.createdAt.desc()),
+    unique("test_runs_slot_unique").on(table.urlId, table.strategy, table.slot, table.trigger),
+  ],
+);
+
+export const alerts = pgTable(
+  "alerts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    urlId: uuid("url_id")
+      .notNull()
+      .references(() => projectUrls.id, { onDelete: "cascade" }),
+    triggerRunId: uuid("trigger_run_id").references(() => testRuns.id, { onDelete: "set null" }),
+    type: alertTypeEnum("type").notNull(),
+    metric: alertMetricEnum("metric").notNull(),
+    source: alertSourceEnum("source").notNull(),
+    strategy: strategyEnum("strategy").notNull(),
+    baselineValue: real("baseline_value").notNull(),
+    currentValue: real("current_value").notNull(),
+    threshold: real("threshold").notNull(),
+    status: alertStatusEnum("status").notNull().default("open"),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    emailedAt: timestamp("emailed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  },
+  (table) => [
+    // One open alert per problem, so a site that stays broken doesn't send repeat emails.
+    uniqueIndex("alerts_one_open_idx")
+      .on(table.urlId, table.strategy, table.type, table.metric)
+      .where(sql`${table.status} = 'open'`),
+    index("alerts_project_idx").on(table.projectId, table.createdAt.desc()),
+  ],
 );
