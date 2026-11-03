@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 interface FormState {
   error?: string;
   saved?: boolean;
+  values?: Record<string, string>;
 }
 
 export interface MonitoringValues {
@@ -33,9 +34,20 @@ export function MonitoringForm({
   emailNote: string | null;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
+  // React resets a form after its action runs, so show what was submitted rather
+  // than letting the fields jump back to the old saved values.
+  const submitted = state.values;
+  const threshold = Number(submitted?.scoreDropThreshold);
+  const current: MonitoringValues = submitted
+    ? {
+        schedule: submitted.schedule ?? values.schedule,
+        scoreDropThreshold: Number.isNaN(threshold) ? values.scoreDropThreshold : threshold,
+        emailAlerts: submitted.emailAlerts === "on",
+      }
+    : values;
 
   return (
-    <form action={formAction} className="flex max-w-xl flex-col gap-4">
+    <form key={JSON.stringify(current)} action={formAction} className="flex max-w-xl flex-col gap-4">
       <div>
         <Label htmlFor="schedule" className="mb-2 block">
           Automatic tests
@@ -43,7 +55,7 @@ export function MonitoringForm({
         <select
           id="schedule"
           name="schedule"
-          defaultValue={values.schedule}
+          defaultValue={current.schedule}
           className="h-10 w-full rounded-lg border border-input bg-card px-2.5 text-sm"
         >
           {SCHEDULE_OPTIONS.map((option) => (
@@ -65,7 +77,7 @@ export function MonitoringForm({
             type="number"
             min={1}
             max={50}
-            defaultValue={values.scoreDropThreshold}
+            defaultValue={current.scoreDropThreshold}
             className="h-10 w-24 bg-card"
           />
           <span className="text-sm text-muted-foreground">points below the usual score</span>
@@ -76,7 +88,7 @@ export function MonitoringForm({
         <input
           type="checkbox"
           name="emailAlerts"
-          defaultChecked={values.emailAlerts}
+          defaultChecked={current.emailAlerts}
           className="mt-0.5 size-4 accent-[var(--primary)]"
         />
         <span>

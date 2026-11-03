@@ -58,6 +58,7 @@ export async function updateMonitoringAction(
   formData: FormData,
 ): Promise<FormState & { saved?: boolean }> {
   const emailAlerts = formData.get("emailAlerts") === "on";
+  const submitted = { ...Object.fromEntries(formData), emailAlerts: emailAlerts ? "on" : "off" };
   const state = await runFormAction(formData, (userId, values) =>
     projectService().updateMonitoring(userId, projectId, {
       schedule: values.schedule ?? "",
@@ -66,7 +67,10 @@ export async function updateMonitoringAction(
     }),
   );
   revalidatePath(`/projects/${projectId}`);
-  return state.error ? state : { saved: true };
+  const values = Object.fromEntries(
+    Object.entries(submitted).filter(([key, value]) => typeof value === "string" && !key.startsWith("$")),
+  ) as Record<string, string>;
+  return state.error ? { error: state.error, values } : { saved: true, values };
 }
 
 export async function addCompetitorAction(projectId: string, _state: FormState, formData: FormData) {
