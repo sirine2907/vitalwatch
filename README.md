@@ -156,7 +156,3 @@ tests/           tests and fixtures
 ```
 
 ESLint enforces the layers. For example, a component can't import an integration, and a page can't query the database. Every repository read is scoped to its owner, so another user's project, test, alert or report is simply a 404.
-
-## Credits
-
-Inspired by [speed-insight](https://github.com/youssefsz/speed-insight) by [@youssefsz](https://github.com/youssefsz), an MIT-licensed PageSpeed Insights front end. VitalWatch is a separate codebase that reuses ideas from it, not code.
