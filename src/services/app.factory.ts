@@ -11,6 +11,7 @@ import { createAlertService } from "./alert.service";
 import { createMonitoringService, type MonitoringService } from "./monitoring.service";
 import { createProjectService } from "./project.service";
 import { createRunService } from "./run.service";
+import { createReportService } from "./report.service";
 import { createSuggestionService } from "./suggestion.service";
 import { createAnthropicProvider } from "@/integrations/llm/anthropic";
 import { createGeminiProvider } from "@/integrations/llm/gemini";
@@ -101,4 +102,8 @@ export function suggestionService() {
     fetchPage: (url) => fetchPublicPage(url),
     dailyLimit: env.AI_DAILY_LIMIT_PER_USER,
   });
+}
+
+export function reportService() {
+  return createReportService(getDb());
 }

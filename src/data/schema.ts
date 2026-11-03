@@ -91,6 +91,7 @@ export const projects = pgTable(
     scoreDropThreshold: integer("score_drop_threshold").notNull().default(10),
     baselineSize: integer("baseline_size").notNull().default(10),
     emailAlerts: boolean("email_alerts").notNull().default(true),
+    brandColor: text("brand_color"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
@@ -221,4 +222,21 @@ export const aiSuggestions = pgTable(
     unique("ai_suggestions_run_prompt_unique").on(table.runId, table.promptVersion),
     index("ai_suggestions_user_idx").on(table.userId, table.createdAt),
   ],
+);
+
+export const sharedReports = pgTable(
+  "shared_reports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    // Only a hash is stored, so a database leak doesn't hand out working links.
+    tokenHash: text("token_hash").notNull().unique(),
+    snapshot: jsonb("snapshot").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("shared_reports_project_idx").on(table.projectId)],
 );

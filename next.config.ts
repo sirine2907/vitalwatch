@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // react-pdf ships its own font and layout engines, which must not be bundled.
+  serverExternalPackages: ["@react-pdf/renderer"],
 };
 
 export default nextConfig;
