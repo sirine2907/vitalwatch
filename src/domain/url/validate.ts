@@ -1,3 +1,5 @@
+import { isBlockedIpv4, isBlockedIpv6 } from "./ip";
+
 export const MAX_URL_LENGTH = 2048;
 
 export type UrlValidation =
@@ -11,36 +13,6 @@ const BLOCKED_SUFFIXES = [".localhost", ".local", ".internal", ".intranet", ".la
 const TRACKING_PARAM = /^(utm_.+|gclid|fbclid|msclkid)$/i;
 
 const PRIVATE_ADDRESS_MESSAGE = "Private and local addresses can't be tested.";
-
-function isPrivateIpv4(host: string): boolean | null {
-  const match = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(host);
-  if (!match) return null;
-  const [a, b] = [Number(match[1]), Number(match[2])];
-  return (
-    a === 0 ||
-    a === 10 ||
-    a === 127 ||
-    a >= 224 ||
-    (a === 100 && b >= 64 && b <= 127) ||
-    (a === 169 && b === 254) ||
-    (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && b === 168) ||
-    (a === 192 && b === 0 && Number(match[3]) === 0) ||
-    (a === 198 && (b === 18 || b === 19))
-  );
-}
-
-function isBlockedIpv6(host: string): boolean {
-  const address = host.slice(1, -1);
-  return (
-    address === "::" ||
-    address === "::1" ||
-    address.startsWith("::ffff:") ||
-    /^f[cd]/.test(address) ||
-    /^fe[89ab]/.test(address) ||
-    address.startsWith("ff")
-  );
-}
 
 /** Removes the parts of a URL that don't change the page being tested. */
 function normalize(parsed: URL): string {
@@ -90,11 +62,11 @@ export function validateUrl(input: string): UrlValidation {
   const host = parsed.hostname.toLowerCase();
 
   if (host.startsWith("[")) {
-    if (isBlockedIpv6(host)) return fail(PRIVATE_ADDRESS_MESSAGE);
+    if (isBlockedIpv6(host.slice(1, -1))) return fail(PRIVATE_ADDRESS_MESSAGE);
     return { ok: true, url: normalize(parsed) };
   }
 
-  const privateIpv4 = isPrivateIpv4(host);
+  const privateIpv4 = isBlockedIpv4(host);
   if (privateIpv4 === true) return fail(PRIVATE_ADDRESS_MESSAGE);
 
   if (privateIpv4 === null) {
