@@ -8,8 +8,11 @@ import { LatestResults } from "@/components/projects/latest-results";
 import { RunHistory } from "@/components/projects/run-history";
 import { RunTestsButton } from "@/components/projects/run-tests-button";
 import { buildTrendSeries, parseMetric, parseRange, TREND_METRICS } from "@/domain/history/trend";
+import { FixSuggestionsView, StackList } from "@/components/ai/fix-suggestions";
+import { GenerateFixesButton } from "@/components/ai/generate-fixes-button";
+import { STRATEGIES } from "@/domain/psi/types";
 import { requireUser } from "@/lib/session";
-import { projectService, runService } from "@/services/app.factory";
+import { projectService, runService, suggestionService } from "@/services/app.factory";
 import { orNotFound } from "../../../../helpers";
 import { deleteUrlAction } from "../../../actions";
 
@@ -40,6 +43,15 @@ export default async function UrlPage({
     runs.getLatestResults(user.id, urlId, url.url),
   ]);
   const series = buildTrendSeries(rangeRuns, metric, range);
+
+  const suggestions = suggestionService();
+  const fixes = await Promise.all(
+    STRATEGIES.filter((strategy) => latest[strategy]).map(async (strategy) => ({
+      strategy,
+      result: latest[strategy]!,
+      stored: await suggestions.getForRun(user.id, latest[strategy]!.runId),
+    })),
+  );
   const basePath = `/projects/${id}/urls/${urlId}`;
 
   return (
@@ -114,6 +126,45 @@ export default async function UrlPage({
                 Latest results
               </h2>
               <LatestResults results={latest} />
+            </section>
+          )}
+
+          {fixes.length > 0 && (
+            <section aria-labelledby="fixes-heading">
+              <h2 id="fixes-heading" className="text-xl font-semibold">
+                Fix suggestions
+              </h2>
+              <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+                Prioritized fixes for this site&apos;s stack, based on the latest test. Only audit names,
+                measured savings, a few resource URLs and the detected stack are sent to the AI. Never the
+                page&apos;s HTML, cookies or anything about you.
+              </p>
+              <div className="mt-6 flex flex-col gap-10">
+                {fixes.map(({ strategy, result, stored }) => (
+                  <div key={strategy}>
+                    <h3 className="mb-3 font-medium capitalize">{strategy}</h3>
+                    {stored ? (
+                      <div className="flex flex-col gap-4">
+                        <div>
+                          <p className="mb-2 text-sm text-muted-foreground">Detected stack</p>
+                          <StackList stack={stored.stack} />
+                        </div>
+                        <FixSuggestionsView
+                          suggestions={stored.suggestions}
+                          opportunities={result.opportunities}
+                          model={stored.model}
+                        />
+                      </div>
+                    ) : suggestions.isAvailable() ? (
+                      <GenerateFixesButton runId={result.runId} label={`Suggest fixes for ${strategy}`} />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        AI suggestions aren&apos;t set up on this server. Add a free GEMINI_API_KEY to turn them on.
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
             </section>
           )}
 

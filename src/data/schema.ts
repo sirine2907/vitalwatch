@@ -184,3 +184,41 @@ export const alerts = pgTable(
     index("alerts_project_idx").on(table.projectId, table.createdAt.desc()),
   ],
 );
+
+export const stackDetections = pgTable(
+  "stack_detections",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    urlId: uuid("url_id")
+      .notNull()
+      .references(() => projectUrls.id, { onDelete: "cascade" }),
+    detected: jsonb("detected").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("stack_detections_url_idx").on(table.urlId, table.createdAt.desc())],
+);
+
+export const aiSuggestions = pgTable(
+  "ai_suggestions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    runId: uuid("run_id")
+      .notNull()
+      .references(() => testRuns.id, { onDelete: "cascade" }),
+    // Kept on the row so the daily limit survives the run being deleted.
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    promptVersion: text("prompt_version").notNull(),
+    model: text("model").notNull(),
+    content: jsonb("content").notNull(),
+    stack: jsonb("stack").notNull(),
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique("ai_suggestions_run_prompt_unique").on(table.runId, table.promptVersion),
+    index("ai_suggestions_user_idx").on(table.userId, table.createdAt),
+  ],
+);

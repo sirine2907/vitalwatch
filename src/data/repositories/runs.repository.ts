@@ -98,6 +98,7 @@ export async function listRecentRuns(
 export async function getLatestRawRuns(db: Db, userId: string, urlId: string) {
   const rows = await db
     .selectDistinctOn([testRuns.strategy], {
+      id: testRuns.id,
       strategy: testRuns.strategy,
       raw: testRuns.raw,
       createdAt: testRuns.createdAt,

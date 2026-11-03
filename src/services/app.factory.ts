@@ -11,6 +11,11 @@ import { createAlertService } from "./alert.service";
 import { createMonitoringService, type MonitoringService } from "./monitoring.service";
 import { createProjectService } from "./project.service";
 import { createRunService } from "./run.service";
+import { createSuggestionService } from "./suggestion.service";
+import { createAnthropicProvider } from "@/integrations/llm/anthropic";
+import { createGeminiProvider } from "@/integrations/llm/gemini";
+import type { LlmProvider } from "@/integrations/llm/provider";
+import { fetchPublicPage } from "@/integrations/site-fetcher";
 
 function psiFetcher(env: Env) {
   return (url: string, strategy: "mobile" | "desktop") => {
@@ -75,4 +80,25 @@ export function monitoringService(): MonitoringService {
     alerts: alertService(),
   });
   return service;
+}
+
+/** Claude when its key is set, otherwise Gemini's free tier, otherwise none. */
+function llmProvider(env: Env): LlmProvider | null {
+  if (env.ANTHROPIC_API_KEY) {
+    return createAnthropicProvider({ apiKey: env.ANTHROPIC_API_KEY, model: env.ANTHROPIC_MODEL });
+  }
+  if (env.GEMINI_API_KEY) {
+    return createGeminiProvider({ apiKey: env.GEMINI_API_KEY, model: env.GEMINI_MODEL, endpoint: env.GEMINI_API_URL });
+  }
+  return null;
+}
+
+export function suggestionService() {
+  const env = readEnv();
+  return createSuggestionService({
+    db: getDb(),
+    provider: llmProvider(env),
+    fetchPage: (url) => fetchPublicPage(url),
+    dailyLimit: env.AI_DAILY_LIMIT_PER_USER,
+  });
 }

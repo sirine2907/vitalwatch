@@ -84,10 +84,10 @@ export function createRunService(deps: RunDependencies) {
     /** Re-reads the stored raw JSON, so results match what was measured then. */
     async getLatestResults(userId: string, urlId: string, url: string) {
       const rows = await runs.getLatestRawRuns(db, userId, urlId);
-      const results: Partial<Record<Strategy, AnalysisResult>> = {};
+      const results: Partial<Record<Strategy, AnalysisResult & { runId: string }>> = {};
       for (const row of rows) {
         try {
-          results[row.strategy] = parsePsiResponse(row.raw, row.strategy, url);
+          results[row.strategy] = { ...parsePsiResponse(row.raw, row.strategy, url), runId: row.id };
         } catch {
           // A row saved by an older format shouldn't break the whole page.
           console.error(`[vitalwatch] couldn't re-read a stored ${row.strategy} run`);
