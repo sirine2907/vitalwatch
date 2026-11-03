@@ -32,7 +32,10 @@ const ROWS: RowDefinition[] = [
 export interface CompareRow {
   label: string;
   cells: (string | null)[];
-  /** Columns holding the best value. Ties are all marked; one value alone isn't "best". */
+  /**
+   * Columns holding the best value. Shared bests are all marked, but nothing is
+   * marked when everyone is equal or only one page has data.
+   */
   best: number[];
 }
 
@@ -46,7 +49,7 @@ export function buildComparison(columns: CompareColumn[]): CompareRow[] {
       label: row.label,
       cells: values.map((value) => (value === null ? null : row.format(value))),
       best:
-        present.length < 2
+        present.length < 2 || present.every((value) => value === target)
           ? []
           : values.flatMap((value, index) => (value !== null && value === target ? [index] : [])),
     };

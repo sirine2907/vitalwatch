@@ -35,32 +35,37 @@ const column = (label: string, m: Partial<RunMetrics> | null): CompareColumn => 
 
 describe("buildComparison", () => {
   const rows = buildComparison([
-    column("you", { performanceScore: 70, fieldLcpMs: 2000, labCls: 0.1 }),
-    column("rival", { performanceScore: 90, fieldLcpMs: 3000, labCls: 0.1 }),
+    column("you", { performanceScore: 70, fieldLcpMs: 2000, labCls: 0.1, labTbtMs: 300 }),
+    column("rival", { performanceScore: 90, fieldLcpMs: 3000, labCls: 0.1, labTbtMs: 300 }),
+    column("other", { performanceScore: 50, labCls: 0.2, labTbtMs: 300 }),
     column("untested", null),
   ]);
   const row = (label: string) => rows.find((r) => r.label === label)!;
 
   it("marks the highest score as best", () => {
-    expect(row("Performance score")).toMatchObject({ cells: ["70", "90", null], best: [1] });
+    expect(row("Performance score")).toMatchObject({ cells: ["70", "90", "50", null], best: [1] });
   });
 
   it("marks the lowest time as best", () => {
     expect(row("LCP (real users)").best).toEqual([0]);
   });
 
-  it("marks ties as best for all", () => {
+  it("marks a shared best for all who share it", () => {
     expect(row("CLS (lab)").best).toEqual([0, 1]);
   });
 
+  it("marks nothing when everyone is equal", () => {
+    expect(row("Total Blocking Time").best).toEqual([]);
+  });
+
   it("marks nothing when fewer than two have data", () => {
-    expect(row("INP (real users)")).toMatchObject({ cells: [null, null, null], best: [] });
+    expect(row("INP (real users)")).toMatchObject({ cells: [null, null, null, null], best: [] });
     const single = buildComparison([column("you", { performanceScore: 50 }), column("rival", null)]);
     expect(single[0].best).toEqual([]);
   });
 
   it("formats values for each metric", () => {
-    expect(row("LCP (real users)").cells).toEqual(["2.0 s", "3.0 s", null]);
+    expect(row("LCP (real users)").cells).toEqual(["2.0 s", "3.0 s", null, null]);
   });
 });
 
@@ -205,7 +210,7 @@ describe("report service", () => {
     const { project, url, reports } = await setup();
     const result = await reports.compare(owner, project.id, url.id, "mobile");
     expect(result.columns.map((c) => [c.label, c.isYours])).toEqual([["Home", true], ["Rival", false]]);
-    expect(result.rows[0]).toMatchObject({ label: "Performance score", cells: ["73", "73"], best: [0, 1] });
+    expect(result.rows[0]).toMatchObject({ label: "Performance score", cells: ["73", "73"], best: [] });
 
     const desktop = await reports.compare(owner, project.id, url.id, "desktop");
     expect(desktop.columns.every((c) => c.metrics === null)).toBe(true);
