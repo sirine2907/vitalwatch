@@ -4,6 +4,40 @@ A website performance monitor built on the Google PageSpeed Insights API. It tes
 
 The design and the reasons behind it are in [PLAN.md](PLAN.md).
 
+## Screenshots
+
+These show sample data from a local test setup, with example domains and stand-in services. No real site's results are shown.
+
+**Test any page.** Real-user Core Web Vitals, lab metrics and ranked opportunities, on mobile and desktop.
+
+![Home page with the URL form](docs/screenshots/home.png)
+
+![Results for one page: score, real-user vitals, lab metrics and opportunities](docs/screenshots/results.png)
+
+**Track every page over time.** Mobile and desktop on one chart, with Google's thresholds marked. Failed tests show as gaps, never as zero.
+
+![90-day performance score trend for mobile and desktop](docs/screenshots/trends.png)
+
+**Monitor on a schedule.** Confirmed drops open alerts, which close on their own once the page recovers.
+
+![Project page with its pages, latest scores and recent alerts](docs/screenshots/project.png)
+
+**Get fixes for your stack.** The detected stack and its evidence, then prioritized fixes with code. Savings come from Lighthouse's measurements.
+
+![AI fix suggestions for a Next.js site](docs/screenshots/ai-fixes.png)
+
+**Compare with competitors.** The best value in each row is marked.
+
+![Your page next to two competitors](docs/screenshots/compare.png)
+
+**Share a read-only report**, or download it as a branded PDF.
+
+![Shared report with pages and competitors](docs/screenshots/report.png)
+
+**Works on phones.**
+
+<img src="docs/screenshots/phone.png" alt="Results on a phone" width="320">
+
 ## Features
 
 **Testing, no account needed**
