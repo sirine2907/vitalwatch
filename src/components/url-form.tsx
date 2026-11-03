@@ -28,7 +28,7 @@ export function UrlForm({ defaultValue = "" }: { defaultValue?: string }) {
   return (
     // action and method make this a normal form until JavaScript has loaded.
     <form action="/analyze" method="get" onSubmit={submit} noValidate className="w-full">
-      <Label htmlFor="url" className="mb-2 block">
+      <Label htmlFor="url" className="mb-2 block font-mono text-xs tracking-wider text-muted-foreground uppercase">
         Page URL
       </Label>
       <div className="flex flex-col gap-2 sm:flex-row">
@@ -42,9 +42,9 @@ export function UrlForm({ defaultValue = "" }: { defaultValue?: string }) {
           spellCheck={false}
           aria-invalid={error !== null}
           aria-describedby={error ? "url-error" : undefined}
-          className="h-11 bg-card text-base"
+          className="h-11 bg-background font-mono text-base md:text-sm"
         />
-        <Button type="submit" className="h-11 px-6 text-base">
+        <Button type="submit" className="h-11 px-6">
           Test page
         </Button>
       </div>

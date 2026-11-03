@@ -95,7 +95,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       ) : (
         <div className="mt-8 overflow-x-auto rounded-lg border bg-card">
           <table className="w-full text-sm">
-            <thead className="border-b text-left text-muted-foreground">
+            <thead className="border-b border-foreground text-left text-muted-foreground">
               <tr>
                 <th scope="col" className="p-4 font-medium">Page</th>
                 <th scope="col" className="p-4 font-medium">Mobile</th>

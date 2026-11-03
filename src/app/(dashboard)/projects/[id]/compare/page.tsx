@@ -90,7 +90,7 @@ export default async function ComparePage({
               <caption className="sr-only">
                 Your page against competitors on {strategy}. The best value in each row is marked.
               </caption>
-              <thead className="border-b text-left">
+              <thead className="border-b border-foreground text-left">
                 <tr>
                   <th scope="col" className="p-3 font-medium text-muted-foreground">Metric</th>
                   {columns.map((column) => (

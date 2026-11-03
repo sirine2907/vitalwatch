@@ -45,7 +45,7 @@ function LoadingPanel({ label }: { label: string }) {
         Running the {label.toLowerCase()} test. This usually takes 20 to 60 seconds.
       </p>
       <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-center">
-        <Skeleton className="size-36 rounded-full" />
+        <Skeleton className="h-36 w-full sm:w-64" />
         <Skeleton className="h-16 w-full max-w-sm" />
       </div>
       <div className="mt-8 grid gap-3 md:grid-cols-3">
@@ -82,8 +82,8 @@ export function ResultsView({ url }: { url: string }) {
 
   return (
     <div>
-      <p className="text-sm text-muted-foreground">Results for</p>
-      <h1 className="mt-1 text-2xl font-semibold tracking-tight break-all">{url}</h1>
+      <p className="font-mono text-xs tracking-widest text-mark uppercase">Test results</p>
+      <h1 className="mt-2 font-mono text-xl font-medium tracking-tight break-all sm:text-2xl">{url}</h1>
 
       <Tabs defaultValue="mobile" className="mt-6">
         <TabsList>

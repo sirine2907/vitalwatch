@@ -6,9 +6,12 @@ import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 import { buildChartScale, formatMetricValue } from "@/domain/history/chart-scale";
 import { TREND_METRICS, type TrendMetric, type TrendRow, type TrendSeries } from "@/domain/history/trend";
 import { STRATEGIES, type Strategy } from "@/domain/psi/types";
+import { cn } from "@/lib/utils";
 
-// Validated for contrast and colorblind separation against the card surface.
-const SERIES_COLOR: Record<Strategy, string> = { mobile: "#0d9488", desktop: "#7c3aed" };
+// Ink and red pen, like the rest of the report. Desktop is also dashed, so the
+// lines stay apart in print and for colorblind readers.
+const SERIES_COLOR: Record<Strategy, string> = { mobile: "#1c1b19", desktop: "#b42318" };
+const SERIES_DASH: Record<Strategy, string | undefined> = { mobile: undefined, desktop: "6 3" };
 const SERIES_LABEL: Record<Strategy, string> = { mobile: "Mobile", desktop: "Desktop" };
 const MAX_ROWS_WITH_DOTS = 60;
 const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
@@ -25,6 +28,19 @@ function formatTick(time: number, spanMs: number): string {
     : date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+function LineSwatch({ strategy, className }: { strategy: Strategy; className: string }) {
+  return (
+    <span
+      className={cn("border-t-2", className)}
+      style={{
+        borderColor: SERIES_COLOR[strategy],
+        borderTopStyle: SERIES_DASH[strategy] ? "dashed" : "solid",
+      }}
+      aria-hidden
+    />
+  );
+}
+
 function ChartTooltip({
   active,
   payload,
@@ -39,17 +55,13 @@ function ChartTooltip({
   const { unit } = TREND_METRICS[metric];
 
   return (
-    <div className="rounded-lg border bg-card p-3 text-sm shadow-md">
-      <p className="text-muted-foreground">{new Date(row.time).toLocaleString()}</p>
+    <div className="border border-foreground bg-card p-3 text-sm">
+      <p className="font-mono text-xs text-muted-foreground">{new Date(row.time).toLocaleString()}</p>
       {STRATEGIES.map((strategy) => {
         const value = row[strategy];
         return (
           <p key={strategy} className="mt-1 flex items-center gap-2">
-            <span
-              className="h-0.5 w-3 rounded-full"
-              style={{ backgroundColor: SERIES_COLOR[strategy] }}
-              aria-hidden
-            />
+            <LineSwatch strategy={strategy} className="w-4" />
             <span className="font-mono font-semibold tabular-nums">
               {value === null ? "No data" : formatMetricValue(unit, value)}
             </span>
@@ -84,11 +96,7 @@ export function TrendChart({ series, metric }: { series: TrendSeries; metric: Tr
           const latest = latestValue(rows, strategy);
           return (
             <li key={strategy} className="flex items-center gap-2">
-              <span
-                className="h-0.5 w-4 rounded-full"
-                style={{ backgroundColor: SERIES_COLOR[strategy] }}
-                aria-hidden
-              />
+              <LineSwatch strategy={strategy} className="w-5" />
               <span className="text-muted-foreground">{SERIES_LABEL[strategy]}</span>
               <span className="font-mono font-semibold tabular-nums">
                 {latest === null ? "No data" : formatMetricValue(unit, latest)}
@@ -151,16 +159,22 @@ export function TrendChart({ series, metric }: { series: TrendSeries; metric: Tr
                       name={SERIES_LABEL[strategy]}
                       stroke={SERIES_COLOR[strategy]}
                       strokeWidth={2}
-                      strokeLinecap="round"
+                      strokeDasharray={SERIES_DASH[strategy]}
                       strokeLinejoin="round"
                       connectNulls
                       isAnimationActive={false}
                       dot={
                         showDots
-                          ? { r: 4, fill: SERIES_COLOR[strategy], stroke: "var(--card)", strokeWidth: 2 }
+                          ? {
+                              r: 3.5,
+                              fill: SERIES_COLOR[strategy],
+                              stroke: "var(--card)",
+                              strokeWidth: 2,
+                              strokeDasharray: "none",
+                            }
                           : false
                       }
-                      activeDot={{ r: 5, stroke: "var(--card)", strokeWidth: 2 }}
+                      activeDot={{ r: 5, stroke: "var(--card)", strokeWidth: 2, strokeDasharray: "none" }}
                     />
                   );
                 }),
@@ -174,9 +188,9 @@ export function TrendChart({ series, metric }: { series: TrendSeries; metric: Tr
         <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
           View as table
         </summary>
-        <div className="mt-2 max-h-72 overflow-auto rounded-lg border">
+        <div className="mt-2 max-h-72 overflow-auto border">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 border-b bg-card text-left text-muted-foreground">
+            <thead className="sticky top-0 border-b border-foreground bg-card text-left text-muted-foreground">
               <tr>
                 <th scope="col" className="p-2 font-medium">Time</th>
                 <th scope="col" className="p-2 font-medium">Mobile</th>

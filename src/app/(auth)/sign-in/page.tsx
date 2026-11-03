@@ -50,7 +50,7 @@ export default async function SignInPage({
 
       {ready && providers.github && (
         <form action={signInWithGitHub} className="mt-6">
-          <Button type="submit" className="h-11 w-full text-base">
+          <Button type="submit" className="h-11 w-full">
             Continue with GitHub
           </Button>
         </form>
