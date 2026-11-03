@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { projectService } from "@/services/app.factory";
+import { appUrl, readEnv } from "@/lib/env";
+import { projectService, reportService } from "@/services/app.factory";
 import { runFormAction, type FormState } from "../helpers";
 
 export async function createProjectAction(_state: FormState, formData: FormData) {
@@ -66,4 +67,45 @@ export async function updateMonitoringAction(
   );
   revalidatePath(`/projects/${projectId}`);
   return state.error ? state : { saved: true };
+}
+
+export async function addCompetitorAction(projectId: string, _state: FormState, formData: FormData) {
+  const state = await runFormAction(formData, async (userId, values) => {
+    await projectService().addUrl(userId, projectId, values.url ?? "", values.label ?? "", "competitor");
+  });
+  revalidatePath(`/projects/${projectId}`);
+  return state;
+}
+
+export async function setBrandColorAction(projectId: string, _state: FormState, formData: FormData) {
+  const state = await runFormAction(formData, (userId, values) =>
+    reportService().setBrandColor(userId, projectId, values.brandColor ?? ""),
+  );
+  revalidatePath(`/projects/${projectId}`);
+  return state.error ? state : { values: state.values };
+}
+
+export interface ShareState {
+  error?: string;
+  link?: string;
+}
+
+export async function createShareLinkAction(
+  projectId: string,
+  _state: ShareState,
+  formData: FormData,
+): Promise<ShareState> {
+  let token: string | undefined;
+  const state = await runFormAction(formData, async (userId, values) => {
+    token = await reportService().createShareLink(userId, projectId, values.expiry ?? "");
+  });
+  revalidatePath(`/projects/${projectId}`);
+  if (state.error || !token) return { error: state.error };
+  return { link: `${appUrl(readEnv())}/r/${token}` };
+}
+
+export async function revokeShareLinkAction(projectId: string, reportId: string, formData: FormData) {
+  const { error } = await runFormAction(formData, (userId) => reportService().revokeShareLink(userId, reportId));
+  if (error) throw new Error(error);
+  revalidatePath(`/projects/${projectId}`);
 }

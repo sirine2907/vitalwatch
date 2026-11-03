@@ -6,15 +6,22 @@ import { ConfirmDelete } from "@/components/projects/confirm-delete";
 import { MonitoringForm } from "@/components/projects/monitoring-form";
 import { SimpleForm } from "@/components/projects/simple-form";
 import { ScoreLabel } from "@/components/results/score-label";
+import { ShareLinkForm } from "@/components/reports/share-link-form";
+import { MAX_COMPETITORS_PER_PROJECT } from "@/domain/projects/limits";
 import { SCHEDULE_LABELS } from "@/domain/monitoring/schedule";
+import { DEFAULT_BRAND_COLOR } from "@/domain/reports/snapshot";
 import { readEnv } from "@/lib/env";
 import { requireUser } from "@/lib/session";
-import { alertService, projectService } from "@/services/app.factory";
+import { alertService, projectService, reportService } from "@/services/app.factory";
 import { orNotFound } from "../../helpers";
 import {
+  addCompetitorAction,
   addUrlAction,
+  createShareLinkAction,
   deleteProjectAction,
   renameProjectAction,
+  revokeShareLinkAction,
+  setBrandColorAction,
   updateMonitoringAction,
 } from "../actions";
 
@@ -34,8 +41,12 @@ function emailNote(userEmail: string | null | undefined): string | null {
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await requireUser();
-  const { project, urls } = await orNotFound(projectService().getOverview(user.id, id));
+  const { project, urls, competitors } = await orNotFound(projectService().getOverview(user.id, id));
   const alerts = (await alertService().list(user.id, project.id)).slice(0, RECENT_ALERTS);
+  const shareLinks = await reportService().listShareLinks(user.id, project.id);
+  const now = Date.now();
+  const linkStatus = (link: (typeof shareLinks)[number]) =>
+    link.revokedAt ? "Revoked" : link.expiresAt && link.expiresAt.getTime() <= now ? "Expired" : "Active";
 
   return (
     <div>
@@ -124,6 +135,92 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </div>
       </section>
 
+      <section aria-labelledby="competitors-heading" className="mt-12">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 id="competitors-heading" className="text-lg font-semibold">Competitors</h2>
+          {competitors.length > 0 && urls.length > 0 && (
+            <Link href={`/projects/${project.id}/compare`} className="text-sm underline underline-offset-2">
+              Compare side by side
+            </Link>
+          )}
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Up to {MAX_COMPETITORS_PER_PROJECT} pages to compare against. They&apos;re only tested when you ask.
+        </p>
+        {competitors.length > 0 && (
+          <ul className="mt-4 divide-y rounded-lg border bg-card">
+            {competitors.map((competitor) => (
+              <li key={competitor.id} className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
+                <Link
+                  href={`/projects/${project.id}/urls/${competitor.id}`}
+                  className="min-w-0 font-medium break-all hover:underline"
+                >
+                  {competitor.label ?? competitor.url}
+                </Link>
+                <span className="flex gap-4">
+                  <span>Mobile <ScoreLabel score={competitor.mobile} /></span>
+                  <span>Desktop <ScoreLabel score={competitor.desktop} /></span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {competitors.length < MAX_COMPETITORS_PER_PROJECT && (
+          <div className="mt-4 rounded-lg border bg-card p-4">
+            <SimpleForm
+              action={addCompetitorAction.bind(null, project.id)}
+              fields={[
+                { name: "url", label: "Competitor URL", placeholder: "rival.com", grow: true },
+                { name: "label", label: "Name (optional)", placeholder: "Rival Inc" },
+              ]}
+              submitLabel="Add competitor"
+              pendingLabel="Adding..."
+              variant="outline"
+            />
+          </div>
+        )}
+      </section>
+
+      <section aria-labelledby="reports-heading" className="mt-12">
+        <h2 id="reports-heading" className="text-lg font-semibold">Reports</h2>
+        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+          Share a read-only snapshot of the latest results, or download it as a PDF. A shared link shows
+          the results as they are now, and never anything newer.
+        </p>
+        <a
+          href={`/api/projects/${project.id}/report`}
+          className="mt-4 inline-block text-sm underline underline-offset-2"
+        >
+          Download PDF report
+        </a>
+        <div className="mt-4">
+          <ShareLinkForm action={createShareLinkAction.bind(null, project.id)} />
+        </div>
+        {shareLinks.length > 0 && (
+          <ul className="mt-4 divide-y rounded-lg border bg-card text-sm">
+            {shareLinks.map((link) => (
+              <li key={link.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
+                <span>
+                  Created <LocalTime iso={link.createdAt.toISOString()} />
+                  <span className="text-muted-foreground">
+                    {" "}
+                    · {link.expiresAt ? <>expires <LocalTime iso={link.expiresAt.toISOString()} /></> : "never expires"}
+                    {" "}· {linkStatus(link)}
+                  </span>
+                </span>
+                {linkStatus(link) === "Active" && (
+                  <ConfirmDelete
+                    action={revokeShareLinkAction.bind(null, project.id, link.id)}
+                    label="Revoke"
+                    message="Revoke this link? Anyone who has it will lose access."
+                  />
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <section aria-labelledby="settings-heading" className="mt-12 border-t pt-8">
         <h2 id="settings-heading" className="text-lg font-semibold">Settings</h2>
         <h3 className="mt-6 font-medium">Monitoring</h3>
@@ -140,6 +237,27 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           }}
           emailNote={emailNote(user.email)}
         />
+        <h3 className="mt-10 font-medium">Report color</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          The accent used on shared reports and PDFs, as a hex color.
+        </p>
+        <div className="mt-4 max-w-xl">
+          <SimpleForm
+            action={setBrandColorAction.bind(null, project.id)}
+            fields={[
+              {
+                name: "brandColor",
+                label: "Hex color",
+                placeholder: DEFAULT_BRAND_COLOR,
+                defaultValue: project.brandColor ?? "",
+                grow: true,
+              },
+            ]}
+            submitLabel="Save color"
+            pendingLabel="Saving..."
+            variant="outline"
+          />
+        </div>
         <h3 className="mt-10 font-medium">Name</h3>
         <div className="mt-4 max-w-xl">
           <SimpleForm
