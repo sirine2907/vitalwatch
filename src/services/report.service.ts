@@ -99,7 +99,7 @@ export function createReportService(db: Db, now: () => Date = () => new Date()) 
       await projects.requireProject(userId, projectId);
       const color = input.trim();
       if (color && !BRAND_COLOR.test(color)) {
-        throw new AppError("invalid_request", "Use a hex color like #0f766e.", { status: 400 });
+        throw new AppError("invalid_request", "Use a hex color like #b42318.", { status: 400 });
       }
       await repo.setBrandColor(db, userId, projectId, color ? color.toLowerCase() : null);
     },

@@ -1,5 +1,6 @@
 import { LocalTime } from "@/components/local-time";
 import { ScoreLabel } from "@/components/results/score-label";
+import { SectionMark } from "@/components/results/section-mark";
 import type { DeviceSummary, ReportPage, ReportSnapshot } from "@/domain/reports/snapshot";
 import { formatMs, formatVital } from "@/domain/vitals/thresholds";
 
@@ -44,7 +45,7 @@ function DeviceBlock({ label, summary }: { label: string; summary: DeviceSummary
 
 function PageBlock({ page }: { page: ReportPage }) {
   return (
-    <li className="rounded-lg border bg-card p-4">
+    <li className="border border-foreground bg-card p-4">
       <p className="font-medium break-all">{page.label ?? page.url}</p>
       {page.label && <p className="text-sm break-all text-muted-foreground">{page.url}</p>}
       <div className="mt-4 flex flex-col gap-6 sm:flex-row">
@@ -58,8 +59,8 @@ function PageBlock({ page }: { page: ReportPage }) {
 export function ReportView({ snapshot, pdfHref }: { snapshot: ReportSnapshot; pdfHref: string }) {
   return (
     <article>
-      <div className="h-1.5 rounded-full" style={{ backgroundColor: snapshot.brandColor }} aria-hidden />
-      <p className="mt-6 text-xs font-medium tracking-widest text-muted-foreground uppercase">Performance report</p>
+      <div className="h-1.5" style={{ backgroundColor: snapshot.brandColor }} aria-hidden />
+      <p className="mt-6 font-mono text-xs tracking-widest text-muted-foreground uppercase">Performance report</p>
       <div className="mt-1 flex flex-wrap items-end justify-between gap-3">
         <h1 className="text-3xl font-semibold tracking-tight break-words">{snapshot.projectName}</h1>
         <a href={pdfHref} className="text-sm underline underline-offset-2">
@@ -71,7 +72,10 @@ export function ReportView({ snapshot, pdfHref }: { snapshot: ReportSnapshot; pd
       </p>
 
       <section aria-labelledby="pages-heading" className="mt-8">
-        <h2 id="pages-heading" className="text-lg font-semibold">Pages</h2>
+        <h2 id="pages-heading" className="text-xl font-semibold">
+          <SectionMark number={1} />
+          Pages
+        </h2>
         <ul className="mt-4 flex flex-col gap-4">
           {snapshot.pages.map((page) => (
             <PageBlock key={page.url} page={page} />
@@ -81,7 +85,10 @@ export function ReportView({ snapshot, pdfHref }: { snapshot: ReportSnapshot; pd
 
       {snapshot.competitors.length > 0 && (
         <section aria-labelledby="competitors-heading" className="mt-10">
-          <h2 id="competitors-heading" className="text-lg font-semibold">Competitors</h2>
+          <h2 id="competitors-heading" className="text-xl font-semibold">
+            <SectionMark number={2} />
+            Competitors
+          </h2>
           <ul className="mt-4 flex flex-col gap-4">
             {snapshot.competitors.map((page) => (
               <PageBlock key={page.url} page={page} />
