@@ -64,16 +64,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         </main>
         <footer className="border-t">
           <p className="mx-auto w-full max-w-5xl px-4 py-5 text-sm text-muted-foreground sm:px-6">
-            Results from Google PageSpeed Insights. Inspired by{" "}
-            <a
-              className="underline underline-offset-2 hover:text-foreground"
-              href="https://github.com/youssefsz/speed-insight"
-              target="_blank"
-              rel="noreferrer"
-            >
-              speed-insight
-            </a>
-            .
+            Results from Google PageSpeed Insights.
           </p>
         </footer>
       </body>

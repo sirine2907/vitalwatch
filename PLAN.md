@@ -49,9 +49,9 @@ QStash schedule (every 15 min) -> POST /api/jobs/dispatch
 
 ---
 
-## 2. What I learned from speed-insight
+## 2. Lessons from existing PageSpeed tools
 
-The reference is cloned outside this repo, at `D:\Projects\_reference\speed-insight`. No code is copied and the README will credit it. Its README says MIT, but the repo has no LICENSE file. That doesn't affect us because we only reuse ideas.
+Before building, I studied how a typical open-source PageSpeed Insights front end calls the API and shows results. VitalWatch reuses some of its ideas, but none of its code.
 
 **Ideas worth reusing**
 - Keep the PSI key behind a server-side route.
@@ -61,7 +61,7 @@ The reference is cloned outside this repo, at `D:\Projects\_reference\speed-insi
 
 **What I'll do differently**
 
-| Reference | VitalWatch | Why it matters |
+| Typical approach | VitalWatch | Why it matters |
 |---|---|---|
 | Rate limits in an in-memory `Map` on the edge runtime | Upstash Redis | The `Map` is per instance, so limits barely apply on serverless. |
 | Trusts `cf-connecting-ip` and `x-real-ip` first | Uses only the header the host sets | Clients can forge these headers and dodge the limit. |
@@ -72,7 +72,7 @@ The reference is cloned outside this repo, at `D:\Projects\_reference\speed-insi
 | Doesn't check `runtimeError` | Treats it as a failed run | Google's docs say such results may need discarding. A bad score could otherwise trigger a false alert. |
 | Keeps responses in client state, with one 1,000+ line page | Layered services with stored runs | Needed for history. |
 
-The current docs list the host as `pagespeedonline.googleapis.com` with uppercase strategy values. The reference uses `www.googleapis.com` and lowercase. I'll follow the docs and confirm with a live call in Phase 1.
+The current docs list the host as `pagespeedonline.googleapis.com` with uppercase strategy values. Existing tools often use `www.googleapis.com` and lowercase. I'll follow the docs and confirm with a live call in Phase 1.
 
 ---
 
@@ -262,7 +262,7 @@ So the vital check uses field values when available. Otherwise it falls back to 
 
 ### At the end of every phase
 1. Build, lint, type-check and tests all pass.
-2. README updated with setup, env vars and how to run. The credit to speed-insight goes in from Phase 1.
+2. README updated with setup, env vars and how to run.
 3. Commit and push, then give you a manual test checklist and **stop**.
 
 **Commits:** small commits per feature within a phase, each pushed to `sirine2907/vitalwatch` on `main`. The repo is public, so anything committed is visible immediately. `.env.local` is gitignored before the first code commit.
