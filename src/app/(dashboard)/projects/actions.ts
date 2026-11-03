@@ -50,3 +50,20 @@ export async function deleteUrlAction(projectId: string, urlId: string, formData
   if (error) throw new Error(error);
   redirect(`/projects/${projectId}`);
 }
+
+export async function updateMonitoringAction(
+  projectId: string,
+  _state: FormState,
+  formData: FormData,
+): Promise<FormState & { saved?: boolean }> {
+  const emailAlerts = formData.get("emailAlerts") === "on";
+  const state = await runFormAction(formData, (userId, values) =>
+    projectService().updateMonitoring(userId, projectId, {
+      schedule: values.schedule ?? "",
+      scoreDropThreshold: values.scoreDropThreshold ?? "",
+      emailAlerts,
+    }),
+  );
+  revalidatePath(`/projects/${projectId}`);
+  return state.error ? state : { saved: true };
+}

@@ -5,6 +5,7 @@ import { Activity } from "lucide-react";
 import { signOutUser } from "@/app/(auth)/sign-in/actions";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/session";
+import { alertService } from "@/services/app.factory";
 import "./globals.css";
 
 const sans = Schibsted_Grotesk({ variable: "--font-sans", subsets: ["latin"] });
@@ -17,6 +18,8 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const user = await getCurrentUser();
+  // The header shouldn't take the whole page down if the count can't load.
+  const unread = user ? await alertService().countUnread(user.id).catch(() => 0) : 0;
 
   return (
     <html lang="en" className={`${sans.variable} ${code.variable}`}>
@@ -32,6 +35,15 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 <>
                   <Link href="/projects" className="hover:underline">
                     Projects
+                  </Link>
+                  <Link href="/alerts" className="hover:underline">
+                    Alerts
+                    {unread > 0 && (
+                      <span className="ml-1.5 rounded-full bg-poor px-1.5 py-0.5 text-xs font-medium text-white">
+                        {unread}
+                        <span className="sr-only"> unread</span>
+                      </span>
+                    )}
                   </Link>
                   <form action={signOutUser}>
                     <Button type="submit" variant="ghost" size="sm">
