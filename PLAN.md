@@ -2,7 +2,7 @@
 
 VitalWatch tests websites on a schedule, keeps their performance history, alerts on real regressions, and uses AI to explain fixes for each site's tech stack.
 
-**Status:** plan approved. Phases 1 and 2 are built; Phase 3 waits for Phase 2 to be tested.
+**Status:** all five phases are built. None has been run against the real cloud services yet; see the README's testing section.
 
 Versions and limits below were checked on 2026-10-30.
 
