@@ -54,7 +54,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         Projects
       </Link>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="min-w-0 text-3xl font-semibold tracking-tight break-words">{project.name}</h1>
+        <h1 className="min-w-0 text-4xl leading-none font-bold sm:text-5xl break-words">{project.name}</h1>
         <ConfirmDelete
           action={deleteProjectAction.bind(null, project.id)}
           label="Delete project"
@@ -76,7 +76,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         )}
       </p>
 
-      <div className="mt-8 rounded-lg border bg-card p-4">
+      <div className="mt-8 rounded-2xl border bg-card shadow-panel p-4">
         <SimpleForm
           action={addUrlAction.bind(null, project.id)}
           fields={[
@@ -93,9 +93,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           No URLs yet. Add the pages you want to track, starting with your home page.
         </p>
       ) : (
-        <div className="mt-8 overflow-x-auto rounded-lg border bg-card">
+        <div className="mt-8 overflow-x-auto rounded-2xl border bg-card shadow-panel">
           <table className="w-full text-sm">
-            <thead className="border-b border-foreground text-left text-muted-foreground">
+            <thead className="border-b text-left text-muted-foreground">
               <tr>
                 <th scope="col" className="p-4 font-medium">Page</th>
                 <th scope="col" className="p-4 font-medium">Mobile</th>
@@ -125,7 +125,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
       <section aria-labelledby="alerts-heading" className="mt-12">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 id="alerts-heading" className="text-lg font-semibold">Recent alerts</h2>
+          <h2 id="alerts-heading" className="text-2xl font-bold">Recent alerts</h2>
           <Link href="/alerts" className="text-sm text-muted-foreground hover:underline">
             All alerts
           </Link>
@@ -137,7 +137,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
       <section aria-labelledby="competitors-heading" className="mt-12">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 id="competitors-heading" className="text-lg font-semibold">Competitors</h2>
+          <h2 id="competitors-heading" className="text-2xl font-bold">Competitors</h2>
           {competitors.length > 0 && urls.length > 0 && (
             <Link href={`/projects/${project.id}/compare`} className="text-sm underline underline-offset-2">
               Compare side by side
@@ -148,7 +148,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           Up to {MAX_COMPETITORS_PER_PROJECT} pages to compare against. They&apos;re only tested when you ask.
         </p>
         {competitors.length > 0 && (
-          <ul className="mt-4 divide-y rounded-lg border bg-card">
+          <ul className="mt-4 divide-y rounded-2xl border bg-card shadow-panel">
             {competitors.map((competitor) => (
               <li key={competitor.id} className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
                 <Link
@@ -166,7 +166,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           </ul>
         )}
         {competitors.length < MAX_COMPETITORS_PER_PROJECT && (
-          <div className="mt-4 rounded-lg border bg-card p-4">
+          <div className="mt-4 rounded-2xl border bg-card shadow-panel p-4">
             <SimpleForm
               action={addCompetitorAction.bind(null, project.id)}
               fields={[
@@ -182,7 +182,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       </section>
 
       <section aria-labelledby="reports-heading" className="mt-12">
-        <h2 id="reports-heading" className="text-lg font-semibold">Reports</h2>
+        <h2 id="reports-heading" className="text-2xl font-bold">Reports</h2>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           Share a read-only snapshot of the latest results, or download it as a PDF. A shared link shows
           the results as they are now, and never anything newer.
@@ -197,7 +197,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <ShareLinkForm action={createShareLinkAction.bind(null, project.id)} />
         </div>
         {shareLinks.length > 0 && (
-          <ul className="mt-4 divide-y rounded-lg border bg-card text-sm">
+          <ul className="mt-4 divide-y rounded-2xl border bg-card shadow-panel text-sm">
             {shareLinks.map((link) => (
               <li key={link.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
                 <span>
@@ -222,7 +222,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       </section>
 
       <section aria-labelledby="settings-heading" className="mt-12 border-t pt-8">
-        <h2 id="settings-heading" className="text-lg font-semibold">Settings</h2>
+        <h2 id="settings-heading" className="text-2xl font-bold">Settings</h2>
         <h3 className="mt-6 font-medium">Monitoring</h3>
         <p className="mt-1 mb-4 max-w-xl text-sm text-muted-foreground">
           Scheduled tests compare each result with the median of the last {project.baselineSize} tests.

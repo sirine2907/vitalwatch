@@ -7,7 +7,6 @@ import {
 } from "@/domain/vitals/thresholds";
 import { cn } from "@/lib/utils";
 import { RATING_LABEL, RATING_TEXT } from "./rating";
-import { SectionMark } from "./section-mark";
 
 const ASSESSMENT = {
   passed: { label: "Core Web Vitals: passed", className: "text-good" },
@@ -23,7 +22,7 @@ function DistributionBar({ distribution }: { distribution: NonNullable<FieldVita
 
   return (
     <div className="mt-4">
-      <div className="flex h-2 gap-px overflow-hidden" aria-hidden>
+      <div className="flex h-2 gap-0.5 overflow-hidden rounded-full" aria-hidden>
         <div className="bg-good" style={{ width: percent(good) }} />
         <div className="bg-needs-improvement" style={{ width: percent(needsImprovement) }} />
         <div className="bg-poor" style={{ width: percent(poor) }} />
@@ -39,11 +38,11 @@ function VitalCard({ name, vital }: { name: VitalName; vital: FieldVital | null 
   const label = VITAL_LABELS[name];
 
   return (
-    <div className="border bg-card p-4">
+    <div className="rounded-xl border border-dashed border-input bg-card p-5">
       <div className="flex items-baseline justify-between gap-2">
-        <h4 className="font-mono text-sm font-semibold">{label.short}</h4>
+        <h4 className="text-sm font-semibold">{label.short}</h4>
         {vital && (
-          <span className={cn("font-mono text-xs font-medium tracking-wider uppercase", RATING_TEXT[vital.rating])}>
+          <span className={cn("text-xs font-semibold", RATING_TEXT[vital.rating])}>
             {RATING_LABEL[vital.rating]}
           </span>
         )}
@@ -51,7 +50,7 @@ function VitalCard({ name, vital }: { name: VitalName; vital: FieldVital | null 
       <p className="text-xs text-muted-foreground">{label.long}</p>
       {vital ? (
         <>
-          <p className="mt-3 font-mono text-2xl font-semibold tabular-nums">
+          <p className="mt-3 text-4xl font-semibold tracking-tight tabular-nums">
             {formatVital(name, vital.value)}
           </p>
           {vital.distribution && <DistributionBar distribution={vital.distribution} />}
@@ -67,11 +66,10 @@ export function FieldSection({ field }: { field: FieldData }) {
   if (field.scope === "none") {
     return (
       <section aria-labelledby="field-heading">
-        <h3 id="field-heading" className="text-xl font-semibold">
-          <SectionMark number={1} />
+        <h3 id="field-heading" className="text-2xl font-bold">
           Real-user experience
         </h3>
-        <p className="mt-2 border bg-card p-4 text-sm text-muted-foreground">
+        <p className="mt-2 rounded-xl border border-dashed border-input p-4 text-sm text-muted-foreground">
           Chrome doesn&apos;t have enough real-user data for this page or site yet. This is normal
           for low-traffic sites, and the lab results below still apply.
         </p>
@@ -84,8 +82,7 @@ export function FieldSection({ field }: { field: FieldData }) {
   return (
     <section aria-labelledby="field-heading">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <h3 id="field-heading" className="text-xl font-semibold">
-          <SectionMark number={1} />
+        <h3 id="field-heading" className="text-2xl font-bold">
           Real-user experience
         </h3>
         <Badge variant="secondary">

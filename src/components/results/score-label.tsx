@@ -8,7 +8,7 @@ export function ScoreLabel({ score }: { score: number | null }) {
 
   return (
     <span className="whitespace-nowrap">
-      <span className="font-mono font-semibold tabular-nums">{score}</span>{" "}
+      <span className="font-semibold tabular-nums">{score}</span>{" "}
       <span className={cn("text-xs font-medium", RATING_TEXT[rating])}>{RATING_LABEL[rating]}</span>
     </span>
   );

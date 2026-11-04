@@ -16,9 +16,9 @@ function RunResult({ run, now }: { run: RunRecord; now: number }) {
 
 function RunTable({ runs, now }: { runs: RunRecord[]; now: number }) {
   return (
-    <div className="overflow-x-auto rounded-lg border bg-card">
+    <div className="overflow-x-auto rounded-2xl border bg-card shadow-panel">
       <table className="w-full text-sm">
-        <thead className="border-b border-foreground text-left text-muted-foreground">
+        <thead className="border-b text-left text-muted-foreground">
           <tr>
             <th scope="col" className="p-3 font-medium">Time</th>
             <th scope="col" className="p-3 font-medium">Device</th>

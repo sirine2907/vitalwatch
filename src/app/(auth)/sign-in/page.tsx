@@ -31,7 +31,7 @@ export default async function SignInPage({
 
   return (
     <div className="mx-auto max-w-sm sm:pt-8">
-      <h1 className="text-3xl font-semibold tracking-tight">Sign in</h1>
+      <h1 className="text-4xl leading-none font-bold sm:text-5xl">Sign in</h1>
       <p className="mt-2 text-muted-foreground">
         Save your sites and keep the history of every test.
       </p>

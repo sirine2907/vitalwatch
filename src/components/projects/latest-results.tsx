@@ -1,6 +1,6 @@
 "use client";
 
-import { ResultPanel } from "@/components/results/result-panel";
+import { RESULT_PANEL, ResultPanel } from "@/components/results/result-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { STRATEGIES, type AnalysisResult, type Strategy } from "@/domain/psi/types";
 
@@ -11,16 +11,16 @@ export function LatestResults({ results }: { results: Partial<Record<Strategy, A
   if (available.length === 0) return null;
 
   return (
-    <Tabs defaultValue={available[0]}>
+    <Tabs defaultValue={available[0]} className="gap-0">
       <TabsList>
         {available.map((strategy) => (
-          <TabsTrigger key={strategy} value={strategy} className="px-3">
+          <TabsTrigger key={strategy} value={strategy}>
             {LABEL[strategy]}
           </TabsTrigger>
         ))}
       </TabsList>
       {available.map((strategy) => (
-        <TabsContent key={strategy} value={strategy}>
+        <TabsContent key={strategy} value={strategy} className={RESULT_PANEL}>
           <ResultPanel result={results[strategy]!} />
         </TabsContent>
       ))}

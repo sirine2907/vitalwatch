@@ -22,7 +22,7 @@ export default async function AlertsPage() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-semibold tracking-tight">Alerts</h1>
+        <h1 className="text-4xl leading-none font-bold sm:text-5xl">Alerts</h1>
         {unread && (
           <form action={markAllRead}>
             <Button type="submit" variant="outline" size="sm">

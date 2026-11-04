@@ -19,14 +19,14 @@ export interface AlertItem extends AlertDescription {
 export function AlertList({ alerts, showProject = true }: { alerts: AlertItem[]; showProject?: boolean }) {
   if (alerts.length === 0) {
     return (
-      <p className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">
+      <p className="rounded-2xl border bg-card shadow-panel p-4 text-sm text-muted-foreground">
         No alerts. Alerts appear here when a scheduled test finds a confirmed drop.
       </p>
     );
   }
 
   return (
-    <ul className="divide-y rounded-lg border bg-card">
+    <ul className="divide-y rounded-2xl border bg-card shadow-panel">
       {alerts.map((alert) => (
         <li key={alert.id} className="p-4">
           <div className="flex flex-wrap items-center gap-2">

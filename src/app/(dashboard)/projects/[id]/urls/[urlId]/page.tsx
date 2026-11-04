@@ -61,7 +61,7 @@ export default async function UrlPage({
       </Link>
       <div className="mt-1 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight break-all">{url.label ?? url.url}</h1>
+          <h1 className="text-4xl leading-none font-bold break-all sm:text-5xl">{url.label ?? url.url}</h1>
           {url.label && <p className="mt-1 text-sm break-all text-muted-foreground">{url.url}</p>}
         </div>
         <ConfirmDelete
@@ -76,20 +76,20 @@ export default async function UrlPage({
       </div>
 
       {recent.length === 0 ? (
-        <p className="mt-8 rounded-lg border bg-card p-4 text-muted-foreground">
+        <p className="mt-8 rounded-2xl border bg-card shadow-panel p-4 text-muted-foreground">
           No tests yet. Run the first one to start this page&apos;s history.
         </p>
       ) : (
         <div className="mt-10 flex flex-col gap-12">
           <section aria-labelledby="trend-heading">
-            <h2 id="trend-heading" className="text-xl font-semibold">
+            <h2 id="trend-heading" className="text-2xl font-bold">
               Trends
             </h2>
             <div className="mt-4">
               <TrendFilters basePath={basePath} range={range} metric={metric} />
             </div>
 
-            <div className="mt-6 rounded-lg border bg-card p-4">
+            <div className="mt-6 rounded-2xl border bg-card shadow-panel p-4">
               <h3 className="font-medium">
                 {definition.group === "Overall" ? definition.label : `${definition.label} (${definition.group.toLowerCase()})`}
                 , last {range} days
@@ -122,7 +122,7 @@ export default async function UrlPage({
 
           {Object.keys(latest).length > 0 && (
             <section aria-labelledby="latest-heading">
-              <h2 id="latest-heading" className="mb-4 text-xl font-semibold">
+              <h2 id="latest-heading" className="mb-4 text-2xl font-bold">
                 Latest results
               </h2>
               <LatestResults results={latest} />
@@ -131,7 +131,7 @@ export default async function UrlPage({
 
           {fixes.length > 0 && (
             <section aria-labelledby="fixes-heading">
-              <h2 id="fixes-heading" className="text-xl font-semibold">
+              <h2 id="fixes-heading" className="text-2xl font-bold">
                 Fix suggestions
               </h2>
               <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
@@ -169,7 +169,7 @@ export default async function UrlPage({
           )}
 
           <section aria-labelledby="history-heading">
-            <h2 id="history-heading" className="mb-4 text-xl font-semibold">
+            <h2 id="history-heading" className="mb-4 text-2xl font-bold">
               Test history
             </h2>
             <RunHistory runs={recent} now={Date.now()} />

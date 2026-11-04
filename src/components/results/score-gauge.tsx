@@ -2,53 +2,56 @@ import { rateScore } from "@/domain/vitals/thresholds";
 import { cn } from "@/lib/utils";
 import { RATING_LABEL, RATING_TEXT } from "./rating";
 
-const TICKS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-// The rating boundaries get a long tick and a number under the ruler.
-const MAJOR_TICKS = [0, 50, 90, 100];
+// Lighthouse's rating bands, drawn as a track under the score.
+const ZONES = [
+  { from: 0, to: 50, className: "bg-poor/25" },
+  { from: 50, to: 90, className: "bg-needs-improvement/25" },
+  { from: 90, to: 100, className: "bg-good/25" },
+];
+// The band starts. 100 is left out because it would crowd 90.
+const LABELS = [0, 50, 90];
 
 export function ScoreGauge({ score }: { score: number }) {
   const rating = rateScore(score);
 
   return (
     <div
-      className="w-full shrink-0 border border-foreground bg-card px-5 pt-4 pb-3 sm:w-64"
+      className="w-full shrink-0 rounded-xl border border-dashed border-input bg-card px-5 pt-4 pb-3 sm:w-72"
       role="img"
       aria-label={`Performance score ${score} out of 100, ${RATING_LABEL[rating]}`}
     >
-      <div className="flex items-start justify-between gap-3" aria-hidden>
-        <span className="font-mono text-6xl leading-none font-semibold tabular-nums">{score}</span>
-        <span
-          className={cn(
-            "mt-1 -rotate-3 border-2 border-current px-1.5 py-0.5 font-mono text-[0.7rem] font-semibold tracking-widest uppercase",
-            RATING_TEXT[rating],
-          )}
-        >
-          {RATING_LABEL[rating]}
-        </span>
-      </div>
+      <div aria-hidden>
+        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Performance</p>
+        <p className="mt-1 flex items-start gap-1">
+          <span className="text-7xl leading-none font-semibold tracking-tight tabular-nums">{score}</span>
+          <span className="mt-1.5 text-sm font-medium text-muted-foreground">/100</span>
+        </p>
+        <p className={cn("mt-2 text-sm font-semibold", RATING_TEXT[rating])}>{RATING_LABEL[rating]}</p>
 
-      <div className="relative mt-5 h-3 border-b border-foreground" aria-hidden>
-        {TICKS.map((tick) => (
+        <div className="relative mt-4 flex h-2 gap-0.5">
+          {ZONES.map((zone) => (
+            <span
+              key={zone.from}
+              className={cn("h-full rounded-full", zone.className)}
+              style={{ width: `${zone.to - zone.from}%` }}
+            />
+          ))}
           <span
-            key={tick}
-            className={cn(
-              "absolute bottom-0 w-px bg-foreground",
-              MAJOR_TICKS.includes(tick) ? "h-3" : "h-1.5",
-            )}
-            style={{ left: `${tick}%` }}
+            className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-card bg-foreground shadow"
+            style={{ left: `${score}%` }}
           />
-        ))}
-        <span
-          className="absolute top-full mt-px size-0 -translate-x-1/2 border-x-[5px] border-b-[7px] border-x-transparent border-b-mark"
-          style={{ left: `${score}%` }}
-        />
-      </div>
-      <div className="relative mt-2.5 h-3 font-mono text-[0.65rem] text-muted-foreground" aria-hidden>
-        {MAJOR_TICKS.map((tick) => (
-          <span key={tick} className="absolute -translate-x-1/2" style={{ left: `${tick}%` }}>
-            {tick}
-          </span>
-        ))}
+        </div>
+        <div className="relative mt-1.5 h-4 text-[0.7rem] text-muted-foreground tabular-nums">
+          {LABELS.map((label) => (
+            <span
+              key={label}
+              className={cn("absolute", label === 0 ? "left-0" : "-translate-x-1/2")}
+              style={label === 0 ? undefined : { left: `${label}%` }}
+            >
+              {label}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );

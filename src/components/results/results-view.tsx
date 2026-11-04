@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { STRATEGIES, type AnalysisResult, type AnalyzeResponse, type Strategy } from "@/domain/psi/types";
-import { ResultPanel } from "./result-panel";
+import { RESULT_PANEL, ResultPanel } from "./result-panel";
 
 type RunState =
   | { status: "loading" }
@@ -40,7 +40,7 @@ async function runAnalysis(url: string, strategy: Strategy): Promise<RunState> {
 
 function LoadingPanel({ label }: { label: string }) {
   return (
-    <div role="status" className="mt-6">
+    <div role="status">
       <p className="text-muted-foreground">
         Running the {label.toLowerCase()} test. This usually takes 20 to 60 seconds.
       </p>
@@ -82,10 +82,10 @@ export function ResultsView({ url }: { url: string }) {
 
   return (
     <div>
-      <p className="font-mono text-xs tracking-widest text-mark uppercase">Test results</p>
-      <h1 className="mt-2 font-mono text-xl font-medium tracking-tight break-all sm:text-2xl">{url}</h1>
+      <p className="text-sm font-medium text-muted-foreground">Test results for</p>
+      <h1 className="mt-1 text-4xl leading-none font-bold break-all sm:text-5xl">{url}</h1>
 
-      <Tabs defaultValue="mobile" className="mt-6">
+      <Tabs defaultValue="mobile" className="mt-8 gap-0">
         <TabsList>
           {STRATEGIES.map((strategy) => {
             const { label, icon: Icon } = STRATEGY_META[strategy];
@@ -95,7 +95,7 @@ export function ResultsView({ url }: { url: string }) {
                 <Icon className="size-4" aria-hidden />
                 {label}
                 {state.status === "done" && (
-                  <span className="font-mono tabular-nums">{state.result.score}</span>
+                  <span className="tabular-nums">{state.result.score}</span>
                 )}
               </TabsTrigger>
             );
@@ -105,13 +105,13 @@ export function ResultsView({ url }: { url: string }) {
         {STRATEGIES.map((strategy) => {
           const state = runs[strategy];
           return (
-            <TabsContent key={strategy} value={strategy}>
+            <TabsContent key={strategy} value={strategy} className={RESULT_PANEL}>
               {state.status === "loading" && <LoadingPanel label={STRATEGY_META[strategy].label} />}
               {state.status === "done" && (
                 <ResultPanel result={state.result} cached={state.cached} />
               )}
               {state.status === "error" && (
-                <div className="mt-6">
+                <div>
                   <Alert>
                     <AlertTitle>The {strategy} test didn&apos;t finish</AlertTitle>
                     <AlertDescription>{state.message}</AlertDescription>

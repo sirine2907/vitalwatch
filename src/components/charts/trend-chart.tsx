@@ -8,9 +8,9 @@ import { TREND_METRICS, type TrendMetric, type TrendRow, type TrendSeries } from
 import { STRATEGIES, type Strategy } from "@/domain/psi/types";
 import { cn } from "@/lib/utils";
 
-// Ink and red pen, like the rest of the report. Desktop is also dashed, so the
+// Black and pink to match the page. Desktop is also dashed, so the
 // lines stay apart in print and for colorblind readers.
-const SERIES_COLOR: Record<Strategy, string> = { mobile: "#1c1b19", desktop: "#b42318" };
+const SERIES_COLOR: Record<Strategy, string> = { mobile: "#141416", desktop: "#c2255c" };
 const SERIES_DASH: Record<Strategy, string | undefined> = { mobile: undefined, desktop: "6 3" };
 const SERIES_LABEL: Record<Strategy, string> = { mobile: "Mobile", desktop: "Desktop" };
 const MAX_ROWS_WITH_DOTS = 60;
@@ -55,14 +55,14 @@ function ChartTooltip({
   const { unit } = TREND_METRICS[metric];
 
   return (
-    <div className="border border-foreground bg-card p-3 text-sm">
-      <p className="font-mono text-xs text-muted-foreground">{new Date(row.time).toLocaleString()}</p>
+    <div className="rounded-lg border bg-card p-3 text-sm shadow-panel">
+      <p className="text-xs text-muted-foreground">{new Date(row.time).toLocaleString()}</p>
       {STRATEGIES.map((strategy) => {
         const value = row[strategy];
         return (
           <p key={strategy} className="mt-1 flex items-center gap-2">
             <LineSwatch strategy={strategy} className="w-4" />
-            <span className="font-mono font-semibold tabular-nums">
+            <span className="font-semibold tabular-nums">
               {value === null ? "No data" : formatMetricValue(unit, value)}
             </span>
             <span className="text-muted-foreground">{SERIES_LABEL[strategy]}</span>
@@ -98,7 +98,7 @@ export function TrendChart({ series, metric }: { series: TrendSeries; metric: Tr
             <li key={strategy} className="flex items-center gap-2">
               <LineSwatch strategy={strategy} className="w-5" />
               <span className="text-muted-foreground">{SERIES_LABEL[strategy]}</span>
-              <span className="font-mono font-semibold tabular-nums">
+              <span className="font-semibold tabular-nums">
                 {latest === null ? "No data" : formatMetricValue(unit, latest)}
               </span>
             </li>
@@ -188,16 +188,16 @@ export function TrendChart({ series, metric }: { series: TrendSeries; metric: Tr
         <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
           View as table
         </summary>
-        <div className="mt-2 max-h-72 overflow-auto border">
+        <div className="mt-2 max-h-72 overflow-auto rounded-lg border">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 border-b border-foreground bg-card text-left text-muted-foreground">
+            <thead className="sticky top-0 border-b bg-card text-left text-muted-foreground">
               <tr>
                 <th scope="col" className="p-2 font-medium">Time</th>
                 <th scope="col" className="p-2 font-medium">Mobile</th>
                 <th scope="col" className="p-2 font-medium">Desktop</th>
               </tr>
             </thead>
-            <tbody className="divide-y font-mono tabular-nums">
+            <tbody className="divide-y tabular-nums">
               {hydrated &&
                 [...rows].reverse().map((row) => (
                   <tr key={row.time}>

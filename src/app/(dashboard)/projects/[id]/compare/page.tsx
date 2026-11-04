@@ -32,10 +32,10 @@ export default async function ComparePage({
       <Link href={`/projects/${id}`} className="text-sm text-muted-foreground hover:underline">
         {project.name}
       </Link>
-      <h1 className="mt-1 text-3xl font-semibold tracking-tight">Compare with competitors</h1>
+      <h1 className="mt-1 text-4xl leading-none font-bold sm:text-5xl">Compare with competitors</h1>
 
       {!yours || competitors.length === 0 ? (
-        <p className="mt-6 rounded-lg border bg-card p-4 text-muted-foreground">
+        <p className="mt-6 rounded-2xl border bg-card shadow-panel p-4 text-muted-foreground">
           Add at least one page and one competitor on the{" "}
           <Link href={`/projects/${id}`} className="underline underline-offset-2">
             project page
@@ -85,12 +85,12 @@ export default async function ComparePage({
             <CompareTestsButton urlIds={[yours.id, ...competitors.map((c) => c.id)]} strategy={strategy} />
           </div>
 
-          <div className="mt-6 overflow-x-auto rounded-lg border bg-card">
+          <div className="mt-6 overflow-x-auto rounded-2xl border bg-card shadow-panel">
             <table className="w-full text-sm">
               <caption className="sr-only">
                 Your page against competitors on {strategy}. The best value in each row is marked.
               </caption>
-              <thead className="border-b border-foreground text-left">
+              <thead className="border-b text-left">
                 <tr>
                   <th scope="col" className="p-3 font-medium text-muted-foreground">Metric</th>
                   {columns.map((column) => (
@@ -113,7 +113,7 @@ export default async function ComparePage({
                     {row.cells.map((cell, index) => {
                       const best = row.best.includes(index);
                       return (
-                        <td key={index} className={cn("p-3 font-mono tabular-nums", best && "font-semibold")}>
+                        <td key={index} className={cn("p-3 tabular-nums", best && "font-semibold")}>
                           {cell ?? <span className="font-sans text-muted-foreground">No data</span>}
                           {best && <span className="ml-1.5 font-sans text-xs font-medium text-good">Best</span>}
                         </td>

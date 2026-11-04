@@ -14,10 +14,10 @@ export default async function ProjectsPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-semibold tracking-tight">Projects</h1>
+      <h1 className="text-4xl leading-none font-bold sm:text-5xl">Projects</h1>
       <p className="mt-2 text-muted-foreground">A project is one site and the pages you track on it.</p>
 
-      <div className="mt-8 rounded-lg border bg-card p-4">
+      <div className="mt-8 rounded-2xl border bg-card shadow-panel p-4">
         <SimpleForm
           action={createProjectAction}
           fields={[
@@ -36,7 +36,7 @@ export default async function ProjectsPage() {
       {projects.length === 0 ? (
         <p className="mt-8 text-muted-foreground">No projects yet. Create your first one above.</p>
       ) : (
-        <ul className="mt-8 divide-y rounded-lg border bg-card">
+        <ul className="mt-8 divide-y rounded-2xl border bg-card shadow-panel">
           {projects.map((project) => (
             <li key={project.id}>
               <Link
