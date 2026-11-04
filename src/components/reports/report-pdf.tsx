@@ -2,35 +2,36 @@ import { Document, Page, renderToBuffer, StyleSheet, Text, View } from "@react-p
 import type { DeviceSummary, ReportPage, ReportSnapshot } from "@/domain/reports/snapshot";
 import { formatMs, formatVital, rateScore } from "@/domain/vitals/thresholds";
 
-// Same printed-report look as the web pages, using the PDF built-in fonts.
-const INK = "#1c1b19";
-const MUTED = "#5c574d";
-const RULE = "#cdc6b6";
-const RATING_COLOR = { good: "#2e6b3a", "needs-improvement": "#8a5a00", poor: "#b42318" };
+// Same look as the web report: bold black type and dashed "ticket" boxes.
+const INK = "#141416";
+const MUTED = "#5f6068";
+const RULE = "#e3e3e8";
+const DASH = "#9a9aa3";
+const RATING_COLOR = { good: "#15803d", "needs-improvement": "#b45309", poor: "#d92d20" };
 const RATING_LABEL = { good: "Good", "needs-improvement": "Needs work", poor: "Poor" };
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, color: INK, fontFamily: "Helvetica" },
-  band: { height: 4, marginBottom: 18 },
-  brand: { fontSize: 8, color: MUTED, letterSpacing: 1.5, fontFamily: "Courier" },
-  title: { fontSize: 24, fontFamily: "Times-Bold", marginTop: 4 },
-  subtitle: { color: MUTED, marginTop: 4, paddingBottom: 10, borderBottomWidth: 2, borderBottomColor: INK },
-  section: { marginTop: 20 },
-  heading: { fontSize: 14, fontFamily: "Times-Bold", marginBottom: 6 },
-  card: { borderWidth: 1, borderColor: INK, padding: 10, marginBottom: 10 },
-  pageTitle: { fontFamily: "Helvetica-Bold", fontSize: 11 },
-  url: { color: MUTED, fontSize: 8, marginTop: 2, fontFamily: "Courier" },
+  band: { height: 5, borderRadius: 3, marginBottom: 18 },
+  brand: { fontSize: 8, color: MUTED, letterSpacing: 1, fontFamily: "Helvetica-Bold" },
+  title: { fontSize: 28, fontFamily: "Helvetica-Bold", marginTop: 4 },
+  subtitle: { color: MUTED, marginTop: 4 },
+  section: { marginTop: 22 },
+  heading: { fontSize: 16, fontFamily: "Helvetica-Bold", marginBottom: 8 },
+  card: { borderWidth: 1, borderStyle: "dashed", borderColor: DASH, borderRadius: 8, padding: 12, marginBottom: 10 },
+  pageTitle: { fontFamily: "Helvetica-Bold", fontSize: 12 },
+  url: { color: MUTED, fontSize: 8, marginTop: 2 },
   devices: { flexDirection: "row", marginTop: 8 },
   device: { flex: 1, paddingRight: 10 },
-  deviceLabel: { fontSize: 8, color: MUTED, textTransform: "uppercase", fontFamily: "Courier", letterSpacing: 1 },
-  score: { fontSize: 20, fontFamily: "Courier-Bold", marginTop: 2 },
+  deviceLabel: { fontSize: 8, color: MUTED, textTransform: "uppercase", fontFamily: "Helvetica-Bold", letterSpacing: 0.5 },
+  score: { fontSize: 22, fontFamily: "Helvetica-Bold", marginTop: 2 },
   line: { marginTop: 2 },
   fix: { marginTop: 2, color: INK },
-  table: { borderWidth: 1, borderColor: INK },
+  table: { borderWidth: 1, borderStyle: "dashed", borderColor: DASH, borderRadius: 8 },
   row: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: RULE },
   cell: { flex: 1, padding: 6 },
   headCell: { flex: 1, padding: 6, fontFamily: "Helvetica-Bold" },
-  footer: { position: "absolute", bottom: 24, left: 40, right: 40, fontSize: 8, color: MUTED, fontFamily: "Courier" },
+  footer: { position: "absolute", bottom: 24, left: 40, right: 40, fontSize: 8, color: MUTED },
 });
 
 const value = (name: "lcp" | "inp" | "cls" | "tbt", v: number | null) => (v === null ? "No data" : formatVital(name, v));

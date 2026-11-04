@@ -117,7 +117,7 @@ describe("report service", () => {
     const { project, url, reports } = await setup();
     const snapshot = await reports.buildSnapshot(owner, project.id);
 
-    expect(snapshot).toMatchObject({ version: 1, projectName: "Acme Shop", brandColor: "#b42318" });
+    expect(snapshot).toMatchObject({ version: 1, projectName: "Acme Shop", brandColor: "#141416" });
     expect(snapshot.pages).toHaveLength(1);
     expect(snapshot.pages[0]).toMatchObject({ label: "Home", desktop: null });
     expect(snapshot.pages[0].mobile).toMatchObject({ score: 73, topFixes: [{ title: "Eliminate render-blocking", savingsMs: 900 }] });
@@ -203,7 +203,7 @@ describe("report service", () => {
     await reports.setBrandColor(owner, project.id, "#AA3366");
     expect((await reports.buildSnapshot(owner, project.id)).brandColor).toBe("#aa3366");
     await reports.setBrandColor(owner, project.id, "");
-    expect((await reports.buildSnapshot(owner, project.id)).brandColor).toBe("#b42318");
+    expect((await reports.buildSnapshot(owner, project.id)).brandColor).toBe("#141416");
   });
 
   it("compares your page with competitors on one device", async () => {

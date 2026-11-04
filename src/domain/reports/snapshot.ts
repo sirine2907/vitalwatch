@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { AnalysisResult } from "@/domain/psi/types";
 
 export const BRAND_COLOR = /^#[0-9a-f]{6}$/i;
-export const DEFAULT_BRAND_COLOR = "#b42318";
+export const DEFAULT_BRAND_COLOR = "#141416";
 const TOP_FIXES = 5;
 
 const nullableNumber = z.number().nullable();
