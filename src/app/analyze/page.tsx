@@ -19,10 +19,10 @@ export default async function AnalyzePage({
 
   if (!validation.ok) {
     return (
-      <div className="mx-auto max-w-2xl">
-        <h1 className="text-2xl font-semibold tracking-tight">Test a page</h1>
-        {input && <p className="mt-2 text-poor">{validation.error}</p>}
-        <div className="mt-6">
+      <div>
+        <h1 className="text-4xl leading-none font-bold sm:text-5xl">Test a page</h1>
+        {input && <p className="mt-3 text-poor">{validation.error}</p>}
+        <div className="mt-8 rounded-2xl bg-card p-5 shadow-panel sm:p-7">
           <UrlForm defaultValue={input} />
         </div>
       </div>
